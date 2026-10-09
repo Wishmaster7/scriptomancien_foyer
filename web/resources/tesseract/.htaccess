@@ -1,0 +1,23 @@
+# Tesseract.js (lecture du texte d'un reçu, DANS le navigateur) : servi par le site, jamais par un CDN.
+# Tout est refusé par défaut ; seuls les scripts, leurs cartes et le modèle de langue sont servis.
+
+Require all denied
+
+<FilesMatch "\.(js|map|gz)$">
+    Require all granted
+</FilesMatch>
+
+# CACHE ÉTERNEL : chaque version vit dans son propre répertoire (7.0.0/), si bien qu'une mise à jour
+# change l'adresse au lieu de réutiliser un fichier périmé. Le moteur (environ 4 Mo) n'est ainsi
+# téléchargé qu'une fois ; le modèle de langue est en outre gardé par Tesseract.js dans le stockage
+# du navigateur (IndexedDB).
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>
+
+# Le modèle de langue est un fichier gzip que le script décompresse lui-même : il est servi tel quel,
+# sans « Content-Encoding » qui le ferait décompresser une première fois par le navigateur.
+<IfModule mod_mime.c>
+    RemoveEncoding .gz
+    AddType application/octet-stream .gz
+</IfModule>

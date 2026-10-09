@@ -27,3 +27,7 @@
 *.woff2 binary
 *.ttf   binary
 *.eot   binary
+*.gz    binary
+
+# Tesseract.js embarqué (minifié, moteur WebAssembly en base64) : jamais de diff ligne à ligne.
+web/resources/tesseract/** -diff

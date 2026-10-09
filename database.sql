@@ -20,6 +20,10 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS BUDGET_SCAN_ARTICLE;
+DROP TABLE IF EXISTS BUDGET_SCAN;
+DROP TABLE IF EXISTS FOYER_PERSONNE;
+DROP TABLE IF EXISTS FOYER;
 DROP TABLE IF EXISTS LOGS;
 DROP VIEW IF EXISTS PERSONNE_IDENTIFIEE;
 DROP TABLE IF EXISTS PERSONNE;
@@ -206,6 +210,140 @@ CREATE TABLE LOGS (
 
 ALTER TABLE LOGS ADD CONSTRAINT FK_LOGS_CREATED_BY
     FOREIGN KEY (CREATED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- --------------------------------------------------------------------------------------------
+-- FOYER — un groupe de personnes qui partagent leurs dépenses. Créé et peuplé par un
+-- administrateur de la plateforme (écran « Foyers »).
+-- --------------------------------------------------------------------------------------------
+CREATE TABLE FOYER (
+    ID                     INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    NOM                    VARCHAR(100) NOT NULL,
+    CREATED_WHEN           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CREATED_BY             INT NOT NULL,
+    LAST_MODIFIED_WHEN     TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    LAST_MODIFIED_BY       INT NOT NULL,
+    PRIMARY KEY (ID),
+    UNIQUE KEY UK_FOYER_NOM (NOM)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE FOYER ADD CONSTRAINT FK_FOYER_CREATED_BY
+    FOREIGN KEY (CREATED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE FOYER ADD CONSTRAINT FK_FOYER_LAST_MODIFIED_BY
+    FOREIGN KEY (LAST_MODIFIED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- --------------------------------------------------------------------------------------------
+-- FOYER_PERSONNE — qui appartient à quel foyer. Une personne peut appartenir à plusieurs foyers.
+--
+-- PERSONNE_ID vise la ligne LOCALE (PERSONNE), et non l'annuaire : seule une personne admise sur
+-- ce site peut être membre d'un foyer. Retirer un foyer retire ses appartenances (CASCADE) ; il
+-- ne se retire d'ailleurs que s'il ne porte aucune dépense (BUDGET_SCAN, RESTRICT).
+-- --------------------------------------------------------------------------------------------
+CREATE TABLE FOYER_PERSONNE (
+    FOYER_ID               INT UNSIGNED NOT NULL,
+    PERSONNE_ID            INT NOT NULL,
+    CREATED_WHEN           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CREATED_BY             INT NOT NULL,
+    LAST_MODIFIED_WHEN     TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    LAST_MODIFIED_BY       INT NOT NULL,
+    PRIMARY KEY (FOYER_ID, PERSONNE_ID),
+    KEY IDX_FOYER_PERSONNE_PERSONNE (PERSONNE_ID)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE FOYER_PERSONNE ADD CONSTRAINT FK_FOYER_PERSONNE_FOYER
+    FOREIGN KEY (FOYER_ID) REFERENCES FOYER (ID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE FOYER_PERSONNE ADD CONSTRAINT FK_FOYER_PERSONNE_PERSONNE
+    FOREIGN KEY (PERSONNE_ID) REFERENCES PERSONNE (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE FOYER_PERSONNE ADD CONSTRAINT FK_FOYER_PERSONNE_CREATED_BY
+    FOREIGN KEY (CREATED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE FOYER_PERSONNE ADD CONSTRAINT FK_FOYER_PERSONNE_LAST_MODIFIED_BY
+    FOREIGN KEY (LAST_MODIFIED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- --------------------------------------------------------------------------------------------
+-- BUDGET_SCAN — une dépense : un reçu scanné (ou saisi à la main), rattaché à UN foyer.
+--
+-- Ni l'image ni le texte reconnu ne sont conservés : seulement ce que la personne a validé.
+--
+-- STATUT : une dépense supprimée plus de 5 minutes après sa création reste en base, marquée
+-- DELETED, et n'est plus affichée ; supprimée dans les 5 minutes, elle est effacée (DELETE, ses
+-- articles avec elle).
+-- --------------------------------------------------------------------------------------------
+CREATE TABLE BUDGET_SCAN (
+    ID                     INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    FOYER_ID               INT UNSIGNED NOT NULL,
+    -- L'auteur de la dépense, lu par la vue PERSONNE_IDENTIFIEE ; la clé vise la table qu'elle
+    -- montre, une vue ne pouvant porter de clé étrangère.
+    PERSONNE_ID            INT NOT NULL,
+    DATE_DOCUMENT          DATE NOT NULL,
+    NUMERO_TVA             VARCHAR(30) NULL DEFAULT NULL,
+    VENDEUR                VARCHAR(150) NULL DEFAULT NULL,
+    DESCRIPTION            VARCHAR(255) NULL DEFAULT NULL,
+    LIEU                   VARCHAR(150) NULL DEFAULT NULL,
+    STATUT                 ENUM('ACTIF', 'DELETED') NOT NULL DEFAULT 'ACTIF',
+    CREATED_WHEN           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CREATED_BY             INT NOT NULL,
+    LAST_MODIFIED_WHEN     TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    LAST_MODIFIED_BY       INT NOT NULL,
+    PRIMARY KEY (ID),
+    KEY IDX_BUDGET_SCAN_FOYER_DOCUMENT (FOYER_ID, STATUT, DATE_DOCUMENT),
+    KEY IDX_BUDGET_SCAN_FOYER_CREATION (FOYER_ID, STATUT, CREATED_WHEN),
+    KEY IDX_BUDGET_SCAN_PERSONNE (PERSONNE_ID)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE BUDGET_SCAN ADD CONSTRAINT FK_BUDGET_SCAN_FOYER
+    FOREIGN KEY (FOYER_ID) REFERENCES FOYER (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE BUDGET_SCAN ADD CONSTRAINT FK_BUDGET_SCAN_PERSONNE
+    FOREIGN KEY (PERSONNE_ID) REFERENCES PERSONNE (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE BUDGET_SCAN ADD CONSTRAINT FK_BUDGET_SCAN_CREATED_BY
+    FOREIGN KEY (CREATED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE BUDGET_SCAN ADD CONSTRAINT FK_BUDGET_SCAN_LAST_MODIFIED_BY
+    FOREIGN KEY (LAST_MODIFIED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- --------------------------------------------------------------------------------------------
+-- BUDGET_SCAN_ARTICLE — les lignes d'une dépense. MONTANT signé : une remise est une ligne négative.
+-- MONNAIE en code ISO 4217 ; les totaux ne s'additionnent jamais d'une monnaie à l'autre.
+-- --------------------------------------------------------------------------------------------
+CREATE TABLE BUDGET_SCAN_ARTICLE (
+    ID                     INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    SCAN_ID                INT UNSIGNED NOT NULL,
+    NOM                    VARCHAR(150) NOT NULL,
+    MONTANT                DECIMAL(10, 2) NOT NULL,
+    MONNAIE                CHAR(3) NOT NULL DEFAULT 'CHF',
+    CREATED_WHEN           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CREATED_BY             INT NOT NULL,
+    LAST_MODIFIED_WHEN     TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    LAST_MODIFIED_BY       INT NOT NULL,
+    PRIMARY KEY (ID),
+    KEY IDX_BUDGET_SCAN_ARTICLE_SCAN (SCAN_ID)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER TABLE BUDGET_SCAN_ARTICLE ADD CONSTRAINT FK_BUDGET_SCAN_ARTICLE_SCAN
+    FOREIGN KEY (SCAN_ID) REFERENCES BUDGET_SCAN (ID)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE BUDGET_SCAN_ARTICLE ADD CONSTRAINT FK_BUDGET_SCAN_ARTICLE_CREATED_BY
+    FOREIGN KEY (CREATED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
+    ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE BUDGET_SCAN_ARTICLE ADD CONSTRAINT FK_BUDGET_SCAN_ARTICLE_LAST_MODIFIED_BY
+    FOREIGN KEY (LAST_MODIFIED_BY) REFERENCES `3t75aa_personnes`.`PERSONNE` (ID)
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
 SET FOREIGN_KEY_CHECKS = 1;

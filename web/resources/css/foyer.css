@@ -504,6 +504,143 @@ a:hover {
     font-style: italic;
 }
 
+/* LA PAGE ACTIVE se signale par le fond et la couleur, jamais par la graisse ni la taille : le gras
+   élargirait le lien, et toute la rangée bougerait d'une page à l'autre. */
+#navbar .lien-entete.active {
+    background-color: rgba(var(--voile-rgb), 0.1);
+    color: var(--texte-primaire-fort) !important;
+}
+
+/* LES ONGLETS DES ÉCRANS DE GESTION, repris de « Gestion des conventions » (projet convention). */
+.onglets-list {
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.onglets-list .nav-link {
+    color: #000;
+    background-color: #fff;
+    border-color: var(--primary-color);
+    margin-right: 2px;
+}
+
+.onglets-list .nav-link:not(.active):hover,
+.onglets-list .nav-link:not(.active):focus {
+    background-color: #ccc;
+    border-color: var(--primary-color);
+}
+
+.onglets-list .nav-link.active {
+    color: var(--texte-dore);
+    background-color: var(--primary-color);
+    border-color: var(--primary-dark);
+    font-weight: normal;
+}
+
+/* LA PAGINATION aux couleurs du site, et non au bleu de Bootstrap. */
+.pagination {
+    --bs-pagination-color: var(--texte-primaire);
+    --bs-pagination-hover-color: var(--texte-primaire-fort);
+    --bs-pagination-focus-color: var(--texte-primaire-fort);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(123, 90, 57, 0.25);
+    --bs-pagination-active-color: var(--texte-dore);
+    --bs-pagination-active-bg: var(--primary-color);
+    --bs-pagination-active-border-color: var(--primary-color);
+}
+
+/* LES MEMBRES D'UN FOYER : des lignes sans trait, que le survol éclaire. */
+.liste-membres .list-group-item {
+    border: 0;
+    border-radius: var(--bloc-rayon);
+    background-color: transparent;
+    color: var(--texte-courant);
+    transition: background-color 0.15s ease;
+}
+
+.liste-membres .list-group-item:hover {
+    background-color: rgba(var(--voile-rgb), 0.06);
+}
+
+/* LES DRAPEAUX DE LA LANGUE DU REÇU : le choisi se signale par une aura, jamais par une bordure qui
+   le décalerait. Une seule taille, celle qui tient sur une ligne même sur un téléphone. */
+.langues-recu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.drapeau-langue {
+    width: 52px;
+    margin: 1rem 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 4px;
+    line-height: 0;
+    transition: box-shadow 0.15s ease;
+}
+
+.drapeau-langue img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.drapeau-langue[aria-pressed="true"] {
+    box-shadow: 0 0 10px 4px color-mix(in srgb, var(--accent-color) 70%, transparent);
+}
+
+.zone-depot {
+    border: 2px dashed var(--primary-light);
+    border-radius: var(--bloc-rayon);
+    padding: 2rem 1rem;
+    text-align: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.zone-depot-survol {
+    border-color: var(--primary-color);
+    background-color: rgba(var(--voile-rgb), 0.06);
+}
+
+/* LE VOILE COUVRE TOUTE LA PAGE, barre et pied compris (z-index au-dessus de leurs 1030) : rien ne
+   se clique sous lui pendant la lecture du reçu. */
+.voile-chargement {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    background-color: rgba(108, 117, 125, 0.6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.voile-chargement[hidden] {
+    display: none;
+}
+
+.ligne-ecartee input[type="text"] {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.montant {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.detail-depense > td {
+    background-color: var(--bs-tertiary-bg);
+}
+
 .mention-version {
     color: var(--bs-secondary-color);
     opacity: 0.75;
@@ -550,6 +687,16 @@ a:hover {
     .btn-primary-light {
         --bs-btn-color: var(--dark-color);
         --bs-btn-disabled-color: var(--dark-color);
+    }
+
+    .onglets-list .nav-link {
+        color: var(--texte-courant);
+        background-color: var(--bs-tertiary-bg);
+    }
+
+    .onglets-list .nav-link:not(.active):hover,
+    .onglets-list .nav-link:not(.active):focus {
+        background-color: var(--bs-secondary-bg);
     }
 
 }
@@ -625,6 +772,7 @@ a:hover {
         overflow: visible;
     }
 
+
     #navbar .navbar-toggler,
     #navbar .lien-entete {
         display: inline-flex;
@@ -659,6 +807,15 @@ a:hover {
         right: 0.8rem;
         transform: translateY(-50%);
         font-size: 1.1rem;
+    }
+
+    /* Sur téléphone, un onglet de gestion ne garde que son icône : quatre libellés ne tiennent pas. */
+    .onglets-list .nav-link:has(> i) {
+        font-size: 0;
+    }
+
+    .onglets-list .nav-link:has(> i) > i {
+        font-size: 1rem;
     }
 }
 

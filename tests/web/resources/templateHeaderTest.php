@@ -44,20 +44,36 @@ class TemplateHeaderTest extends TestBase
     }
 
     /**
-     * LA BARRE NE PORTE QUE « MON COMPTE », pour tout le monde : ce site n'a aucun écran
-     * d'administration, l'accès s'y ouvre depuis l'application « personnes », et un administrateur
-     * de la plateforme n'y voit donc pas un menu de plus.
+     * LA BARRE PORTE LES ÉCRANS DE CE SITE, puis « Mon compte » : Budget et Scanner pour tout le monde,
+     * Foyers pour les seuls administrateurs. L'accès au site, lui, s'ouvre toujours depuis
+     * l'application « personnes » : aucun menu d'administration des accès n'est ajouté.
      */
-    public function testLaBarreNePorteQueLeMenuMonCompte(): void
+    public function testLaBarrePorteLesEcransPuisLeMenuMonCompte(): void
     {
-        foreach ([self::$adminId, self::$membreId] as $personneId) {
+        foreach ([self::$adminId => true, self::$membreId => false] as $personneId => $admin) {
             $this->connecter($personneId);
             $html = $this->requete();
 
-            $this->assertStringContainsString('id="navCompte"', $html);
+            // HORS DU MENU REPLIABLE : sous « lg », l'icône reste dans la barre, et le libellé, masqué,
+            // reste le nom accessible du lien.
+            $this->assertStringContainsString('<i class="fas fa-coins" aria-hidden="true"></i> <span class="d-none d-lg-inline">Budget</span><span class="visually-hidden d-lg-none">Budget</span>', $html);
+            $this->assertStringContainsString('<i class="fas fa-barcode-read" aria-hidden="true"></i> <span class="d-none d-lg-inline">Scanner un reçu</span>', $html);
+            $this->assertLessThan((int) strpos($html, 'id="navbarNav"'), (int) strpos($html, 'data-role="onglet-budget"'));
+            $this->assertSame($admin, str_contains($html, 'href="/?action=foyers"'));
+            $this->assertLessThan((int) strpos($html, 'id="navCompte"'), (int) strpos($html, 'data-role="onglet-budget"'));
             $this->assertStringNotContainsString('id="navAdmin"', $html);
             $this->assertSame(1, substr_count($html, 'class="nav-item dropdown"'));
         }
+    }
+
+    public function testLOngletDeLaPageCouranteEstActif(): void
+    {
+        $this->connecter(self::$membreId);
+
+        $html = $this->requete(['action' => 'budget_scan']);
+
+        $this->assertStringContainsString('href="/?action=budget_scan" class="lien-entete text-dark active" aria-current="page"', $html);
+        $this->assertStringContainsString('href="/?action=budget" class="lien-entete text-dark" data-role', $html);
     }
 
     public function testLaDeconnexionResteUneSoumissionAvecSonJeton(): void
@@ -196,7 +212,8 @@ class TemplateHeaderTest extends TestBase
         $html = $this->requete();
 
         $this->assertMatchesRegularExpression(
-            '~<a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" aria-label="Mobile App" hidden>~',
+            '~<a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" hidden>\s*'
+            . '<i class="fas fa-mobile-screen" aria-hidden="true"></i> <span class="d-none d-lg-inline">Mobile App</span><span class="visually-hidden d-lg-none">Mobile App</span>~',
             $html
         );
         $this->assertSame(1, substr_count($html, 'data-role="app-mobile"'), 'Une seule icône, jamais répétée dans le menu.');

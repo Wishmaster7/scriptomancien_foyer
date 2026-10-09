@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use Foyer\App\AccueilController;
 use Foyer\App\AuthentificationController;
+use Foyer\App\BudgetController;
+use Foyer\App\BudgetScanController;
 use Foyer\App\Compte;
 use Foyer\App\Flash;
+use Foyer\App\FoyersController;
 use Foyer\App\ProfilController;
 use Foyer\App\Utils;
 
@@ -66,6 +69,33 @@ if (!Compte::estConnecte()) {
 if ($action === 'profil') {
     require_once __DIR__ . '/profil/controller.php';
     (new ProfilController())->traiter();
+
+    return;
+}
+
+if (in_array($action, ['budget', 'budget_scan', 'budget_scan_analyser'], true)) {
+    require_once __DIR__ . '/foyers/model.php';
+    require_once __DIR__ . '/budget/model.php';
+    require_once __DIR__ . '/budget/controller.php';
+    require_once __DIR__ . '/budget_scan/analyseur.php';
+    require_once __DIR__ . '/budget_scan/model.php';
+    require_once __DIR__ . '/budget_scan/controller.php';
+
+    match ($action) {
+        'budget' => (new BudgetController())->traiter(),
+        'budget_scan' => (new BudgetScanController())->traiter(),
+        'budget_scan_analyser' => (new BudgetScanController())->analyser(),
+    };
+
+    return;
+}
+
+// LES FOYERS NE SE GÈRENT QUE PAR UN ADMINISTRATEUR : pour toute autre personne, l'action n'existe
+// pas, et la requête retombe sur l'accueil.
+if ($action === 'foyers' && Compte::estAdmin()) {
+    require_once __DIR__ . '/foyers/model.php';
+    require_once __DIR__ . '/foyers/controller.php';
+    (new FoyersController())->traiter();
 
     return;
 }

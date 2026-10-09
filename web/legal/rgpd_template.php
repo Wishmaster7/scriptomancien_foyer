@@ -22,20 +22,21 @@ use Foyer\App\Utils;
  * Ce qui n'existe pas ici (données de santé, paiement, consentement) n'y figure pas — et ce que tient
  * l'ANNUAIRE et non ce site n'y figure pas davantage.
  *
- * L'ÉNUMÉRATION DE L'ARTICLE 4 SUIT `database.sql`, COLONNE PAR COLONNE (tables PERSONNE et LOGS), ET
- * RIEN DE PLUS : ce que l'ANNUAIRE PARTAGÉ conserve — le code de connexion, la demande de changement
+ * L'ÉNUMÉRATION DE L'ARTICLE 4 SUIT `database.sql`, COLONNE PAR COLONNE (PERSONNE, LOGS, FOYER,
+ * FOYER_PERSONNE, BUDGET_SCAN, BUDGET_SCAN_ARTICLE), ET RIEN DE PLUS : ce que l'ANNUAIRE PARTAGÉ conserve — le code de connexion, la demande de changement
  * d'adresse, le compteur anti-force-brute, `IS_ADMIN`, `IS_BLOQUE` — est décrit par la politique de
  * l'application « personnes », et le redire ici laisserait croire que ce site le détient. Annoncer
  * moins que ce qui est enregistré serait faux ; annoncer plus le serait tout autant. AJOUTER UNE
  * COLONNE, OU UNE ENTRÉE AU JOURNAL, C'EST REVENIR ICI — c'est la seule page qui dise à une personne
  * ce que ce site retient d'elle.
  *
- * LE TEXTE DIT QU'AUCUNE DONNÉE FAMILIALE N'EST ENCORE ENREGISTRÉE (préambule, art. 3, 4 et 4.4) :
- * c'est vrai tant que `database.sql` ne porte que PERSONNE et LOGS. La PREMIÈRE table métier fait
- * tomber ces quatre passages, et l'art. 18 impose de les corriger AVANT qu'elle serve.
+ * LES DÉPENSES DU FOYER (art. 4.4) ET LA LECTURE DES REÇUS (art. 4.5) : l'image reste dans le
+ * navigateur (Tesseract.js), seul le TEXTE part chez Infomaniak (art. 10), et ni l'une ni l'autre ne
+ * sont conservés. Ce qu'Infomaniak garde de son côté est repris de l'art. 6 de ses conditions de
+ * l'API LLM (révision du 07.10.2025) : le relire à chacune de leurs révisions.
  *
- * AUCUNE RESSOURCE N'EST CHARGÉE DEPUIS UN AUTRE SITE : Bootstrap et Font Awesome sont servis depuis
- * resources/, et les articles 10, 11 et 14 l'affirment. Charger un fichier depuis un CDN ou tout autre
+ * AUCUNE RESSOURCE N'EST CHARGÉE DEPUIS UN AUTRE SITE : Bootstrap, Font Awesome et Tesseract.js sont
+ * servis depuis resources/, et les articles 10, 11 et 14 l'affirment. Charger un fichier depuis un CDN ou tout autre
  * site, c'est d'abord revenir ici — et `tests/web/indexTest.php` le refuse.
  *
  * CE QUI EST ICI, ET CE QUI EST DANS « /cgu ». Cette page INFORME sur les traitements : c'est son
@@ -150,10 +151,11 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     profil ouverte au public.
                 </p>
                 <p>
-                    <strong>À ce jour, elle ne permet que deux choses</strong> : se connecter au moyen d'un code à usage
-                    unique, et consulter et modifier son propre profil — pseudonyme, nom, prénom, adresse e-mail. Les
-                    écrans consacrés aux données du foyer ne sont pas encore ouverts ; la présente politique sera
-                    complétée avant qu'ils le soient (article 18).
+                    <strong>Elle permet trois choses</strong> : se connecter au moyen d'un code à usage unique ;
+                    consulter et modifier son propre profil — pseudonyme, nom, prénom, adresse e-mail ; et
+                    <strong>tenir le budget de son foyer</strong> — enregistrer ses dépenses, en photographiant un reçu
+                    ou en le saisissant à la main, et consulter les dépenses des foyers dont on est membre. Les foyers
+                    sont créés et composés par les administrateurs de la plateforme.
                 </p>
 
                 <?php // DEUX SCHÉMAS, ET LE TEXTE DOIT DIRE LEQUEL PORTE QUOI : l'identité est dans l'annuaire
@@ -172,7 +174,8 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     <strong>Ce que la présente application enregistre en propre</strong> ne passe jamais par cet
                     annuaire : son admission sur ce site, la date de son acceptation des conditions générales
-                    d'utilisation, celle de sa dernière connexion, et son journal d'activité (article 4).
+                    d'utilisation, celle de sa dernière connexion, son appartenance aux foyers, les dépenses qu'elle
+                    enregistre, et son journal d'activité (article 4).
                     <strong>L'admission est propre à ce site</strong> : disposer d'un compte de la plateforme n'y donne
                     accès que si elle a été ouverte ici.
                 </p>
@@ -181,10 +184,10 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
             <section id="rgpd-donnees" class="mb-4">
                 <h3>4. Quelles données sont traitées ?</h3>
                 <p>
-                    <strong>Pour l'instant, la seule donnée personnelle que cette application traite est celle de votre
-                    profil</strong> — et elle ne la conserve même pas : le profil appartient au compte commun de la
-                    plateforme (article 3). Ce qui est enregistré ici se résume à <strong>votre admission sur ce site,
-                    deux dates et un journal d'activité</strong>. Aucune donnée familiale n'y figure à ce jour.
+                    Le profil n'est pas conservé ici : il appartient au compte commun de la plateforme (article 3). Ce
+                    qui est enregistré ici se résume à <strong>votre admission sur ce site, deux dates, votre
+                    appartenance aux foyers, les dépenses enregistrées et un journal d'activité</strong>, décrits
+                    ci-dessous.
                 </p>
 
                 <h4 class="h5">4.1 Le profil, conservé dans le compte commun</h4>
@@ -227,17 +230,27 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
 
                 <?php // LE JOURNAL (table LOGS, web/resources/journal.php) : ses entrées sont ÉNUMÉRÉES, et
                       // l'énumération doit suivre les appels à Journal::ecrire() — connexion, déconnexion, les
-                      // trois gestes du profil — plus l'ouverture et la fermeture de l'accès, qu'écrit ici
-                      // l'application « personnes ». Rien d'autre n'est journalisé : ne pas élargir cette liste
-                      // sans élargir le code.?>
+                      // trois gestes du profil, les gestes de l'écran Foyers, l'enregistrement et la suppression
+                      // d'une dépense, chaque analyse de reçu — plus l'ouverture et la fermeture de l'accès,
+                      // qu'écrit ici l'application « personnes ». Rien d'autre n'est journalisé : ne pas élargir
+                      // cette liste sans élargir le code.?>
                 <h4 class="h5">4.3 Journal d'activité</h4>
                 <p>
                     Afin d'assurer la sécurité, la traçabilité et l'intégrité de l'application, les opérations
                     effectuées ici sont enregistrées : <strong>connexion, déconnexion, modification du profil, demande
-                    et confirmation d'un changement d'adresse e-mail, ouverture et fermeture de l'accès à ce
-                    site</strong> — ainsi que, pour une modification, les valeurs avant et après. Ces événements sont
-                    horodatés et associés au compte qui les a effectués et à la personne sur laquelle ils portent.
-                    <strong>Aucune autre opération n'y est inscrite.</strong>
+                    et confirmation d'un changement d'adresse e-mail, ouverture et fermeture de l'accès à ce site,
+                    création, renommage et suppression d'un foyer, ajout et retrait d'un membre, enregistrement et
+                    suppression d'une dépense, et chaque analyse d'un reçu</strong> — ainsi que, pour une
+                    modification, les valeurs avant et après. Ces événements sont horodatés et associés au compte qui
+                    les a effectués et à la personne sur laquelle ils portent. <strong>Aucune autre opération n'y est
+                    inscrite.</strong>
+                </p>
+                <p>
+                    L'entrée d'une dépense en reprend le numéro, le foyer, la date, le vendeur et le nombre d'articles ;
+                    celle d'une analyse, le nombre de caractères transmis, le modèle d'intelligence artificielle
+                    utilisé et le volume de texte facturé — <strong>jamais le texte du reçu</strong>. Ces dernières
+                    servent aussi à plafonner le nombre d'analyses à <?php echo SiteConfig::ANALYSES_PAR_HEURE; ?> par
+                    personne et par heure.
                 </p>
                 <p>
                     Ce journal ne surveille pas la navigation : il n'enregistre ni adresse IP, ni identifiant de
@@ -250,15 +263,62 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     opérations effectuées. Il est conservé pendant la durée indiquée à l'article 13.
                 </p>
 
+                <?php // TABLES FOYER, FOYER_PERSONNE, BUDGET_SCAN ET BUDGET_SCAN_ARTICLE, colonne par colonne. Le STATUT
+                      // et la règle des cinq minutes (BudgetModel::supprimer()) doivent rester décrits tels que le
+                      // code les applique.?>
+                <h4 class="h5">4.4 Les foyers et leurs dépenses</h4>
+                <p>
+                    <strong>Les foyers</strong> : le nom de chaque foyer et la liste de ses membres. Une personne peut
+                    être membre de plusieurs foyers.
+                </p>
+                <p>
+                    <strong>Les dépenses</strong>, chacune rattachée à un foyer et à la personne qui l'a enregistrée :
+                    la <strong>date du document</strong> (le reçu ou la facture), et, lorsqu'ils sont renseignés, le
+                    <strong>vendeur</strong>, le <strong>lieu</strong> d'achat, le <strong>numéro de TVA</strong> du
+                    vendeur et une courte <strong>description</strong>. Chaque dépense porte ses
+                    <strong>articles</strong> : un libellé, un montant et une monnaie.
+                </p>
+                <p>
+                    <strong>Une dépense supprimée dans les cinq minutes</strong> qui suivent son enregistrement est
+                    effacée, articles compris. <strong>Au-delà, elle est conservée, marquée « supprimée »</strong>,
+                    et n'est plus affichée à personne ; son effacement définitif peut être demandé (article 13).
+                </p>
+                <p>
+                    Pour chacun de ces enregistrements, les <strong>dates de création et de dernière modification</strong>
+                    et l'<strong>identité de la personne</strong> qui a effectué l'une ou l'autre.
+                </p>
+
+                <?php // LA LECTURE DES REÇUS : ce paragraphe dit ce qui part chez Infomaniak, et ce qui n'en
+                      // revient pas. Il doit suivre web/resources/js/budget-scan.js (OCR dans le navigateur) et
+                      // web/budget_scan/analyseur.php (seul le texte est transmis).?>
+                <h4 class="h5">4.5 La lecture des reçus</h4>
+                <p>
+                    <strong>La photo d'un reçu ne quitte pas votre appareil</strong> : le texte y est lu par votre
+                    navigateur lui-même, au moyen d'un logiciel de reconnaissance de caractères servi par le site,
+                    dans la langue que vous avez choisie au-dessus de la zone d'image — français, anglais, allemand,
+                    espagnol ou italien. Ce choix n'est ni transmis ni enregistré.
+                </p>
+                <p>
+                    <strong>Seul ce texte est transmis</strong>, au service d'intelligence artificielle de l'hébergeur
+                    (article 10), qui le structure en une proposition — date, vendeur, articles, montants. Cette
+                    proposition vous est présentée pour être <strong>relue, corrigée et validée</strong> : rien n'est
+                    enregistré sans vous, et seules les lignes que vous avez cochées le sont.
+                </p>
+                <p>
+                    <strong>Ni la photo, ni le texte lu ne sont conservés</strong>, ni par l'application ni par ce
+                    service. Un reçu peut porter d'autres informations — un numéro de carte de fidélité, une partie
+                    d'un numéro de carte bancaire, un nom sur une facture : elles font partie du texte transmis pour
+                    l'analyse, mais ne sont pas enregistrées si vous ne les recopiez pas.
+                </p>
+
                 <?php // CETTE SOUS-PARTIE N'EST PAS UN ORNEMENT : elle est le pendant de l'énumération ci-dessus, et
                       // c'est elle qui rend celle-ci vérifiable. Elle doit rester exacte — une colonne ajoutée au
                       // schéma s'annonce à l'article 4 AVANT d'exister, et ce qui est nié ici ne doit jamais être
-                      // enregistré. LA PREMIÈRE DONNÉE FAMILIALE ENREGISTRÉE FAIT TOMBER LE PREMIER PARAGRAPHE.?>
-                <h4 class="h5">4.4 Ce qui n'est pas enregistré</h4>
+                      // enregistré.?>
+                <h4 class="h5">4.6 Ce qui n'est pas enregistré</h4>
                 <p>
-                    <strong>Aucune donnée familiale n'est enregistrée à ce jour</strong> : l'application ne tient, pour
-                    l'instant, que ce qui est énuméré ci-dessus. Le jour où elle en enregistrera, la présente politique
-                    le dira <strong>avant</strong> que ce soit le cas (article 18).
+                    L'application ne tient que ce qui est énuméré ci-dessus. <strong>Elle ne conserve ni la photo ni le
+                    texte d'un reçu</strong>, seulement ce que la personne a validé.
                 </p>
                 <p>
                     Elle n'enregistre <strong>ni adresse IP, ni identifiant de navigateur, ni page consultée</strong> :
@@ -267,7 +327,7 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     Elle ne traite <strong>aucune donnée sensible</strong> au sens de la LPD ni de <strong>donnée
                     concernant la santé</strong> au sens du RGPD, et ne conserve <strong>aucune donnée bancaire</strong> :
-                    le service est gratuit et n'encaisse rien.
+                    le moyen de paiement d'un reçu n'est pas relevé, et le service est gratuit et n'encaisse rien.
                 </p>
             </section>
 
@@ -283,6 +343,11 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     Le reste du profil est renseigné par la personne elle-même, depuis « Mon profil ». L'administration
                     de la plateforme peut corriger une identité ; chaque correction est attribuée à son auteur (voir
                     l'article 4.3).
+                </p>
+                <p>
+                    Les foyers et leurs membres sont saisis par l'administration de la plateforme. Les dépenses sont
+                    saisies par les personnes elles-mêmes, le cas échéant à partir de la proposition tirée d'un reçu
+                    (article 4.5).
                 </p>
                 <p>
                     Le journal d'activité est <strong>produit par l'application</strong>, à partir de l'activité des
@@ -311,6 +376,9 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     <li>authentifier les personnes, et leur permettre de corriger leur profil et de changer d'adresse
                         e-mail en sécurité ;</li>
                     <li>savoir qui est admis sur ce site, et n'y laisser entrer que ces personnes ;</li>
+                    <li>tenir le budget des foyers : enregistrer les dépenses, les partager entre les membres d'un même
+                        foyer et en faire les totaux ;</li>
+                    <li>proposer, à partir du texte d'un reçu, une saisie de la dépense que la personne relit ;</li>
                     <li>assurer la sécurité du service et prévenir les utilisations frauduleuses ou abusives ;</li>
                     <li>assurer la traçabilité des opérations, et disposer des éléments de preuve nécessaires en cas de
                         contestation ;</li>
@@ -336,8 +404,9 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
 
                 <h4 class="h5">Exécution d'un contrat</h4>
                 <p>
-                    Ce qui est nécessaire à la fourniture du service — la connexion, le profil et la vérification que la
-                    personne est admise sur ce site — est fondé sur les
+                    Ce qui est nécessaire à la fourniture du service — la connexion, le profil, la vérification que la
+                    personne est admise sur ce site, la tenue du budget des foyers et la lecture des reçus — est fondé
+                    sur les
                     <a href="/cgu">conditions générales d'utilisation</a>, conformément à l'article 6, paragraphe 1,
                     point b) du RGPD.
                 </p>
@@ -372,6 +441,9 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 </p>
                 <ul>
                     <li>à la personne concernée elle-même, depuis « Mon profil » ;</li>
+                    <li>aux <strong>autres membres d'un foyer</strong>, pour les dépenses de ce foyer : chacun y voit
+                        toutes les dépenses, leurs articles et montants, et le pseudonyme de la personne qui les a
+                        enregistrées ;</li>
                     <li>aux <strong>administrateurs de la plateforme</strong>, dans les conditions décrites
                         ci-dessous ;</li>
                     <li>à l'hébergeur, lorsque son intervention est nécessaire au fonctionnement du service (voir
@@ -380,7 +452,8 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     <strong>Aucune autre application de la plateforme ne lit les données de ce site.</strong> Le compte
                     commun est partagé (article 3), mais ce que la présente application enregistre en propre — votre
-                    admission, les deux dates, son journal — ne l'est pas, et ne sort pas d'ici.
+                    admission, les deux dates, les foyers, les dépenses, son journal — ne l'est pas, et ne sort pas
+                    d'ici, hormis le texte d'un reçu transmis pour analyse (article 10).
                 </p>
 
                 <h4 class="h5">Accès des administrateurs de la plateforme</h4>
@@ -406,6 +479,24 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     de connexion, selon ses modalités et à ses propres fins de sécurité ; ces journaux ne sont pas
                     exploités par <?php echo Utils::echapper($nom_site); ?>.
                 </p>
+
+                <?php // REPRIS DE L'ART. 6 DES CONDITIONS DE L'API LLM D'INFOMANIAK (révision du 07.10.2025) : à
+                      // relire à chacune de leurs révisions — ce paragraphe ne doit rien promettre de plus qu'elles.?>
+                <h4 class="h5">Analyse des reçus</h4>
+                <p>
+                    Le texte lu sur un reçu (article 4.5) est transmis au <strong>service d'intelligence artificielle
+                    d'Infomaniak Network SA</strong>, à Genève, hébergeur de la plateforme, qui le traite en Suisse au
+                    moyen d'un modèle de langage open source. Il agit en <strong>sous-traitant</strong>, pour le seul
+                    besoin de l'analyse demandée.
+                </p>
+                <p>
+                    Selon ses conditions d'utilisation, Infomaniak <strong>ne conserve pas durablement</strong> les
+                    données transmises : elles ne sont stockées que le temps nécessaire au traitement de la requête.
+                    Il <strong>ne les utilise pas pour entraîner ses modèles</strong>, ni pour les valoriser d'aucune
+                    autre manière. Il ne garde, pour la facturation et le bon fonctionnement du service, que le
+                    numéro client de <?php echo Utils::echapper($nom_site); ?>, le nombre, l'heure et la durée de
+                    traitement des requêtes, et leurs métadonnées (taille, format).
+                </p>
                 <p>
                     Lorsqu'un prestataire traite des données personnelles pour le compte de
                     <?php echo Utils::echapper($nom_site); ?>, il n'est autorisé à les traiter que dans le cadre défini
@@ -415,8 +506,9 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 </p>
                 <p>
                     <strong>Aucun service externe n'est sollicité par les pages</strong> : ni carte, ni police de
-                    caractères distante, ni bibliothèque chargée depuis un autre site, ni mesure d'audience. Rien de ce
-                    que vous consultez ici n'est signalé à un tiers.
+                    caractères distante, ni bibliothèque chargée depuis un autre site, ni mesure d'audience. Le logiciel
+                    qui lit les reçus est lui aussi servi par le site. Rien de ce que vous consultez ici n'est signalé
+                    à un tiers.
                 </p>
             </section>
 
@@ -424,7 +516,7 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <h3>11. Localisation et transferts internationaux</h3>
                 <p>
                     L'infrastructure de <?php echo Utils::echapper($nom_site); ?> et les données qui y sont hébergées sont situées en
-                    <strong>Suisse</strong>.
+                    <strong>Suisse</strong>, tout comme le service qui analyse le texte des reçus (article 10).
                 </p>
                 <p>
                     La Suisse bénéficie d'une <strong>décision d'adéquation</strong> de la Commission européenne au
@@ -454,7 +546,15 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     voyagent chiffrés.
                 </p>
                 <p>
-                    Ce mécanisme sert exclusivement au fonctionnement du service. Aucun cookie publicitaire, traceur de
+                    Pour lire les reçus, le navigateur garde aussi dans son stockage local le <strong>modèle de
+                    reconnaissance de chaque langue utilisée</strong> (français, anglais, allemand, espagnol ou
+                    italien), téléchargé depuis le site la première fois qu'un reçu est lu dans cette langue, afin de
+                    ne pas le télécharger à chaque fois. Ces fichiers techniques, identiques pour tous, ne contiennent
+                    aucune donnée personnelle ; ils révèlent au plus, à qui consulte votre appareil, les langues dans
+                    lesquelles vous avez lu des reçus. Vider les données du site dans votre navigateur les efface.
+                </p>
+                <p>
+                    Ces mécanismes servent exclusivement au fonctionnement du service. Aucun cookie publicitaire, traceur de
                     suivi ou outil de mesure d'audience n'est utilisé ; aucun consentement préalable n'est donc requis.
                     Une modification ultérieure qui en introduirait ferait l'objet d'une information et, lorsque
                     nécessaire, d'un recueil de consentement.
@@ -475,6 +575,13 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     <li><strong>Admission sur ce site</strong>, et les deux dates qui s'y rattachent : tant que l'accès
                         existe. Une admission se <strong>ferme</strong>, elle ne se supprime pas — ce que le compte a
                         écrit garde ainsi un auteur nommable.</li>
+                    <li><strong>Appartenance à un foyer</strong> : tant qu'elle dure ; elle est retirée par
+                        l'administration de la plateforme.</li>
+                    <li><strong>Dépenses</strong>, et leurs articles : tant que leur effacement n'est pas demandé. Une
+                        dépense supprimée plus de cinq minutes après son enregistrement est conservée, marquée
+                        « supprimée » et invisible, pendant la même durée (article 4.4).</li>
+                    <li><strong>Photo et texte d'un reçu</strong> : <strong>aucune conservation</strong> (article
+                        4.5).</li>
                     <li><strong>Journal d'activité</strong> : <strong>10 ans</strong> à compter de chaque
                         enregistrement, pour le motif indiqué ci-dessous.</li>
                 </ul>
@@ -528,6 +635,11 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     similaires. L'admission sur ce site est décidée <strong>par une personne</strong>, jamais par un
                     traitement automatisé ; le plafonnement des tentatives de connexion, tenu par le compte commun,
                     retarde une nouvelle demande de code sans autre effet.
+                </p>
+                <p>
+                    L'analyse d'un reçu par intelligence artificielle ne décide rien : elle <strong>propose</strong>
+                    une saisie, que la personne relit, corrige et valide elle-même avant tout enregistrement. Son
+                    plafonnement horaire retarde une nouvelle analyse sans empêcher la saisie à la main.
                 </p>
                 <p>
                     <?php echo Utils::echapper($nom_site); ?> n'utilise pas les données personnelles à des fins de profilage.
@@ -669,7 +781,7 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <?php // LA SIGNATURE : le lieu et la date de la VERSION, alignés à droite comme au bas d'un courrier.
                       // Bloc identique, à la ligne près, au bas de l'autre texte légal.?>
                 <div class="d-flex justify-content-end mt-3">
-                    <span class="fst-italic"><?php echo Utils::echapper($canton_for); ?>, le 8 octobre 2026</span>
+                    <span class="fst-italic"><?php echo Utils::echapper($canton_for); ?>, le 9 octobre 2026</span>
                 </div>
             </section>
 

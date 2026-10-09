@@ -2,8 +2,10 @@ import { defineConfig } from 'vitest/config';
 
 // Tests unitaires JavaScript — l'équivalent de phpunit.xml pour les scripts servis qui nous
 // appartiennent : web/resources/js/console-debug.js (la recopie dans la console des lignes que le
-// serveur pose en mode debug), horloge.js (l'horloge du pied de page) et app-mobile.js
-// (l'installation de l'application sur mobile et la reprise de session).
+// serveur pose en mode debug), horloge.js (l'horloge du pied de page), app-mobile.js
+// (l'installation de l'application sur mobile et la reprise de session), budget-scan.js (la
+// lecture d'un reçu), onglets.js (les onglets transitoires des écrans de gestion) et
+// membres-foyer.js (la liste paginée des membres d'un foyer et sa fenêtre de recherche). Tesseract.js, embarqué sous web/resources/tesseract/, n'est pas le nôtre.
 //
 // LE SCRIPT DU COMPOSANT N'EST PAS MESURÉ ICI : web/resources/personnes/js/personnes.js est une
 // COPIE, couverte dans le projet « personnes » qui la publie. La mesurer ici obligerait à la
@@ -30,7 +32,10 @@ export default defineConfig({
             include: [
                 'web/resources/js/console-debug.js',
                 'web/resources/js/horloge.js',
-                'web/resources/js/app-mobile.js'
+                'web/resources/js/app-mobile.js',
+                'web/resources/js/budget-scan.js',
+                'web/resources/js/onglets.js',
+                'web/resources/js/membres-foyer.js'
             ],
             reporter: ['text', 'html', 'clover'],
             reportsDirectory: 'coverage/js',

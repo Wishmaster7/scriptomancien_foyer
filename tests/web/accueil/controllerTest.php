@@ -44,9 +44,8 @@ class AccueilControllerTest extends TestBase
     }
 
     /**
-     * ELLE MONTRE LA MÊME CHOSE À TOUT LE MONDE : ce site n'a aucun écran d'administration, et
-     * l'accès s'y ouvre depuis l'application « personnes ». Un administrateur de la plateforme n'y
-     * voit donc pas une porte de plus.
+     * ELLE MONTRE LA MÊME CHOSE À TOUT LE MONDE : l'accès au site s'ouvre depuis l'application
+     * « personnes », et l'écran « Foyers » d'un administrateur est dans la barre, pas sur l'accueil.
      */
     public function testElleNOffreAucunEcranDAdministration(): void
     {
