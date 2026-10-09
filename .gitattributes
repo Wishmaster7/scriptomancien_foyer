@@ -1,0 +1,29 @@
+# Normalisation des fins de ligne : LF partout dans le dépôt.
+# Évite le retour des CRLF signalés par php-cs-fixer sous Windows.
+
+# Détection auto par défaut, normalisées en LF dans le dépôt.
+* text=auto eol=lf
+
+# Fichiers texte du projet : toujours LF.
+*.php  text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.json text eol=lf
+*.sql  text eol=lf
+*.md   text eol=lf
+*.html text eol=lf
+*.xml  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Fichiers binaires : jamais de conversion.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary

@@ -1,0 +1,175 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.5"]
+
+    # DEUX SCHÉMAS IMPORTÉS, et tous deux PROPRES à ce projet : 3t75aa_foyer_phpunit (celui de
+    # l'application) et 3t75aa_foyer_personnes_phpunit (l'annuaire d'identité, monté depuis le
+    # sql/ du composant). Leurs noms ne se changent pas — plusieurs tests les citent en toutes
+    # lettres. Un annuaire de test partagé avec un autre projet serait détruit par sa
+    # réinitialisation pendant que la clé étrangère d'ici y pointe encore.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # MARIADB 10.11, la version de la PRODUCTION (Infomaniak) — et le moteur local (WampServer,
+      # port 3306). Lancé par `docker run` plutôt que comme « service » : un service ne transmet
+      # aucun argument au serveur, or il faut lui imposer les réglages du my.ini local (sql_mode
+      # strict, InnoDB par défaut, utf8mb4). Démarré tôt, il s'initialise pendant composer install.
+      - name: Démarrer MariaDB
+        run: |
+          docker run -d --name mariadb -p 3306:3306 \
+            -e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1 \
+            -e MARIADB_DATABASE=3t75aa_foyer_phpunit \
+            mariadb:10.11 \
+            --sql-mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION \
+            --default-storage-engine=InnoDB \
+            --character-set-server=utf8mb4 \
+            --collation-server=utf8mb4_unicode_ci
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # curl : la suite end-to-end demande le site par HTTP (cf. tests/e2e/E2ETestBase.php).
+          extensions: mbstring, xml, xmlwriter, dom, json, tokenizer, ctype, filter, hash, mysqli, curl, pcov
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # INDICATIF, JAMAIS BLOQUANT (`continue-on-error`) : un écart de mise en page n'a jamais
+      # empêché un logiciel de fonctionner. Cette étape signale une dérive ; `composer cs:fix` la
+      # corrige en une commande. Seule la COUVERTURE fait échouer ce job.
+      - name: Mise en page (indicatif)
+        continue-on-error: true
+        run: composer cs
+
+      # Le client du runner (mysql/mysqladmin) dialogue avec MariaDB sans adaptation. Le serveur
+      # temporaire d'initialisation n'écoute pas en TCP : un ping qui répond vient du serveur final.
+      - name: Attendre MariaDB
+        run: |
+          for i in $(seq 1 60); do
+            mysqladmin ping -h 127.0.0.1 --silent && exit 0 || sleep 1
+          done
+          docker logs mariadb
+          exit 1
+
+      # L'ANNUAIRE D'ABORD, la clé étrangère de database.sql le référençant. La vue et les clés
+      # étrangères nomment le schéma de développement (`3t75aa_personnes`) : database.sql est
+      # importé à travers sed, qui le remplace par celui de test — exactement ce que fait
+      # tests/reset-test-db.ps1 en local.
+      - name: Import schemas
+        run: |
+          mysql -h 127.0.0.1 -u root -e "CREATE DATABASE 3t75aa_foyer_personnes_phpunit CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+          mysql -h 127.0.0.1 -u root --default-character-set=utf8mb4 3t75aa_foyer_personnes_phpunit < web/resources/personnes/sql/personnes.sql
+          sed 's/`3t75aa_personnes`\./`3t75aa_foyer_personnes_phpunit`./g' database.sql | mysql -h 127.0.0.1 -u root --default-character-set=utf8mb4 3t75aa_foyer_phpunit
+
+      # Les E2E d'abord : ils écrivent dans les MÊMES schémas, hors transaction, et on repart de
+      # bases propres avant de mesurer la couverture. Ils démarrent un serveur PHP intégré.
+      - name: Tests de bout en bout (sans couverture)
+        env:
+          TEST_DB_HOSTNAME: "127.0.0.1"
+          TEST_DB_USERNAME: root
+          TEST_DB_PASSWORD: ""
+          TEST_DB_DATABASE: 3t75aa_foyer_phpunit
+          TEST_DB_PERSONNES: 3t75aa_foyer_personnes_phpunit
+        # --log-junit : une destination par suite. Un chemin unique serait partagé avec la suite
+        # unitaire, qui tourne ensuite et effacerait ce journal-ci.
+        run: vendor/bin/phpunit --no-coverage --testsuite E2ETests --log-junit coverage/e2e/junit.xml
+
+      # L'APPLICATION EST DÉTRUITE EN PREMIER : sa clé étrangère vise l'annuaire, et MySQL refuse
+      # de supprimer un schéma encore référencé (erreur 3730). Même ordre qu'en local.
+      - name: Réinitialiser les schémas avant les tests unitaires
+        run: |
+          mysql -h 127.0.0.1 -u root \
+            -e "DROP DATABASE IF EXISTS 3t75aa_foyer_phpunit; DROP DATABASE IF EXISTS 3t75aa_foyer_personnes_phpunit;"
+          mysql -h 127.0.0.1 -u root \
+            -e "CREATE DATABASE 3t75aa_foyer_personnes_phpunit CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE 3t75aa_foyer_phpunit CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+          mysql -h 127.0.0.1 -u root --default-character-set=utf8mb4 3t75aa_foyer_personnes_phpunit < web/resources/personnes/sql/personnes.sql
+          sed 's/`3t75aa_personnes`\./`3t75aa_foyer_personnes_phpunit`./g' database.sql | mysql -h 127.0.0.1 -u root --default-character-set=utf8mb4 3t75aa_foyer_phpunit
+
+      - name: Tests unitaires (avec couverture)
+        env:
+          TEST_DB_HOSTNAME: "127.0.0.1"
+          TEST_DB_USERNAME: root
+          TEST_DB_PASSWORD: ""
+          TEST_DB_DATABASE: 3t75aa_foyer_phpunit
+          TEST_DB_PERSONNES: 3t75aa_foyer_personnes_phpunit
+        # -d pcov.directory=web : indispensable. Sans valeur explicite, PCOV déduit tout seul le
+        # répertoire à instrumenter et peut en retenir un autre — la couverture tomberait alors à
+        # 0 % sans le moindre message. `pcov.directory` étant de portée PHP_INI_SYSTEM, ni
+        # phpunit.xml ni ini_set() ne peuvent la poser.
+        # -d memory_limit=512M : la génération du rapport HTML dépasse les 128M par défaut.
+        run: php -d pcov.directory=web -d memory_limit=512M vendor/bin/phpunit --testsuite AllTests --log-junit coverage/phpunit/junit.xml
+
+      # --min=100 fait ÉCHOUER le job si la couverture passe sous 100 %, comme les seuils de
+      # Vitest le font côté JavaScript. Le résumé Markdown est écrit AVANT le verdict : en cas
+      # d'échec, l'onglet Summary montre quand même le détail par module, et les fichiers fautifs
+      # sont nommés dans le journal. PCOV ne mesurant pas les branches, le contrôle porte sur les
+      # lignes et les méthodes (cf. l'en-tête du script).
+      - name: Résumé de couverture (garde-fou 100 %)
+        if: always()
+        run: |
+          echo "## Couverture de tests — PHP ${{ matrix.php }}" >> $GITHUB_STEP_SUMMARY
+          php .github/scripts/coverage-summary.php coverage/clover.xml --min=100 >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-php${{ matrix.php }}
+          path: coverage/
+          retention-days: 14
+
+  vitest:
+    name: Vitest (JavaScript)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      # « npm ci » et non « npm install » : l'installation suit package-lock.json à la lettre, sans
+      # jamais le réécrire.
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Les seuils à 100 % (quatre axes) sont dans vitest.config.mjs : cette étape échoue d'elle-même
+      # sous le seuil, aucun garde-fou séparé n'est nécessaire côté JavaScript.
+      - name: Tests JS (avec couverture)
+        run: npm run test:coverage
+
+      - name: Résumé de couverture
+        if: always()
+        run: |
+          echo "## Couverture de tests — JavaScript" >> $GITHUB_STEP_SUMMARY
+          node .github/scripts/coverage-summary.mjs coverage/js/clover.xml >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-js
+          path: coverage/js/
+          retention-days: 14

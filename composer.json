@@ -1,0 +1,60 @@
+{
+    "name": "scriptomancien/foyer",
+    "description": "Foyer — application de gestion des données familiales",
+    "type": "project",
+    "require": {
+        "php": "^8.5",
+        "phpmailer/phpmailer": "^6.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "classmap": [
+            "web/resources/personnes/src",
+            "web/resources/config.php",
+            "web/resources/database.php",
+            "web/resources/dependances.php",
+            "web/resources/identite.php",
+            "web/resources/utils.php",
+            "web/resources/flash.php",
+            "web/resources/smtp.php",
+            "web/resources/snippet.php",
+            "web/resources/errorPage.php",
+            "web/resources/compte.php",
+            "web/resources/journal.php",
+            "web/resources/memoireFormulaire.php",
+            "web/accueil/controller.php",
+            "web/authentication/controller.php",
+            "web/authentication/model.php",
+            "web/legal/cgu_controller.php",
+            "web/legal/rgpd_controller.php",
+            "web/profil/controller.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": [
+            "php -d pcov.directory=web -d memory_limit=512M vendor/bin/phpunit --testsuite AllTests --log-junit coverage/phpunit/junit.xml",
+            "php tests/couverture.php"
+        ],
+        "test:e2e": "php vendor/bin/phpunit --no-coverage --testsuite E2ETests --log-junit coverage/e2e/junit.xml",
+        "cs": [
+            "php vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.php",
+            "php vendor/bin/php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer-gabarits.php"
+        ],
+        "cs:fix": [
+            "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php",
+            "php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer-gabarits.php"
+        ]
+    },
+    "scripts-descriptions": {
+        "test": "Tests unitaires AVEC couverture, PUIS le garde-fou qui refuse moins de 100 % (tests/couverture.php) : le rapport Clover était produit et personne ne le lisait. Force pcov.directory=web : sans cela, PCOV devine le répertoire à instrumenter et la couverture tombe à 0 %.",
+        "test:e2e": "Tests end-to-end : le parcours de connexion servi par un vrai serveur HTTP, et le script installer-composant.py lancé pour de vrai sur une application factice. Sans couverture — ces processus-là échappent à PCOV.",
+        "cs": "Contrôle de mise en page, sans rien modifier. Deux passes : le code ordinaire et les gabarits.",
+        "cs:fix": "Applique la mise en page des deux périmètres."
+    }
+}

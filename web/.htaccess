@@ -1,0 +1,77 @@
+# Configuration Apache pour la racine du site — POINT D'ENTRÉE UNIQUE.
+#
+# Toutes les URL applicatives passent par index.php (« /?action=… »). Seuls index.php et les
+# trois pages d'erreur sont servis directement ; l'accès au code source (.php des fonctionnalités
+# et de resources/, gabarits d'email .html) est refusé. Les feuilles de style, les polices et les
+# images sont ouvertes par les .htaccess de leurs répertoires, et le composant emporte le sien.
+#
+# DEUX URL COURTES, « /cgu » et « /rgpd », réécrites vers le point d'entrée : ce sont elles que
+# les deux textes légaux publient, que le pied de page propose et que la case à cocher de l'écran
+# de connexion vise. Le point d'entrée les sert d'après le CHEMIN de la requête (jamais d'après une
+# action) et AVANT sa garde d'authentification, un texte qu'on accepte devant être lisible sans
+# compte.
+
+RewriteEngine On
+
+# 1. Bloquer les robots d'IA et les scrapers de données
+RewriteCond %{HTTP_USER_AGENT} (GPTBot|ChatGPT-User|AnthropicAI|ClaudeBot|Claude-Web|Google-Extended|GoogleBot-Extended|PerplexityBot|YouBot|cohere-ai|Omgilibot|Omgfi|FacebookBot|ImagesiftBot|Bytespider|Diffbot|Scrapy|Amazonbot) [NC]
+RewriteRule ^ - [F,L]
+
+# 2. Bloquer les moteurs de recherche traditionnels (si vous refusez aussi Google/Bing)
+RewriteCond %{HTTP_USER_AGENT} (Googlebot|Bingbot|YandexBot|Baiduspider|DuckDuckBot) [NC]
+RewriteRule ^ - [F,L]
+
+# 3. Sécurité d'indexation (Envoie une interdiction d'indexation aux robots qui passeraient à travers)
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow, noai, noimageai"
+</IfModule>
+
+# TOUTES les pages sont servies en HTTPS : une requête en clair est redirigée avant d'atteindre
+# quoi que ce soit — sans quoi le cookie de session ne porterait pas l'attribut « secure » et
+# voyagerait en clair.
+#
+# Trois conditions, et chacune est nécessaire : Apache termine lui-même le TLS ; un
+# reverse-proxy TLS en amont parle en HTTP au serveur, qui verrait donc %{HTTPS} à off sur une
+# requête pourtant chiffrée (sans cette condition, ce déploiement boucle) ; et le développement
+# local tourne en HTTP simple, sans certificat, où rediriger rendrait le site inatteignable.
+#
+# Les motifs d'hôte local ancrent leur SUFFIXE, jamais leur début : un VirtualHost de
+# développement donne au projet son propre nom d'hôte (« foyer.localhost »), et
+# « ^localhost » ne l'aurait pas reconnu. Ces suffixes sont RÉSERVÉS (localhost par la RFC 6761,
+# .local par la RFC 6762) : aucun nom public ne peut s'y glisser pour échapper au HTTPS.
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteCond %{HTTP_HOST} !(^|\.)localhost(:[0-9]+)?$ [NC]
+RewriteCond %{HTTP_HOST} !(^|\.)local(:[0-9]+)?$ [NC]
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:[0-9]+)?$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Les deux textes légaux, sous leur URL courte.
+RewriteRule ^cgu$ index.php [L]
+RewriteRule ^rgpd$ index.php [L]
+
+# Pas de listage de répertoire.
+Options -Indexes
+
+# Refuser l'accès direct au code source.
+<FilesMatch "\.(php|phtml|html)$">
+    Require all denied
+</FilesMatch>
+
+# Autoriser la page de maintenance Infomaniak
+<FilesMatch "\.infomaniak-maintenance\.html$">
+    Require all granted
+</FilesMatch>
+
+# Autoriser le point d'entrée et les trois pages d'erreur — ces dernières sont servies par Apache
+# lui-même (ErrorDocument ci-dessous), qui ne passe pas par le point d'entrée.
+<FilesMatch "^(index|403|404|500)\.php$">
+    Require all granted
+</FilesMatch>
+
+DirectoryIndex index.php
+
+# Gestion des erreurs
+ErrorDocument 403 /403.php
+ErrorDocument 404 /404.php
+ErrorDocument 500 /500.php

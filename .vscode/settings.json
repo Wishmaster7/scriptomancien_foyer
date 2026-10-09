@@ -1,0 +1,16 @@
+{
+    "php.validate.enable": true,
+    "files.encoding": "utf8",
+    "files.eol": "\n",
+    "[php]": {
+        "editor.defaultFormatter": "junstyle.php-cs-fixer",
+        "editor.formatOnSave": false
+    },
+    "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer.bat",
+    "php-cs-fixer.config": ".php-cs-fixer.php",
+    "php-cs-fixer.pathMode": "intersection",
+    "php-cs-fixer.rules": "",
+    "php-cs-fixer.allowRisky": true,
+    "php-cs-fixer.onsave": false,
+    "php-cs-fixer.formatHtml": false
+}

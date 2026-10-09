@@ -1,0 +1,7 @@
+# Fichiers statiques : tout est refusé par défaut, seuls les .css et .map sont servis.
+
+Require all denied
+
+<FilesMatch \.(css|map)$>
+    Require all granted
+</FilesMatch>

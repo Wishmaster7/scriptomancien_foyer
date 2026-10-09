@@ -1,0 +1,17 @@
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+.phpunit.result.cache
+.php_cs.cache
+.php-cs-fixer.cache
+.php-cs-fixer-gabarits.cache
+.php-cs-fixer.dist.php
+composer.phar
+.env
+*.log
+/coverage/
+/vendor/
+/node_modules/
+/migration/*.sql
+.claude/settings.local.*

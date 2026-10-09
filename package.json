@@ -1,0 +1,17 @@
+{
+  "name": "foyer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests unitaires JavaScript (Vitest) des deux scripts servis que nous possédons : l'horloge du pied de page et la recopie des lignes du mode debug",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "//vitest": "Versions EXACTES, et vitest et son greffon de couverture TOUJOURS à la même : npm 10.9.0 échoue (« Cannot read properties of null (reading 'edgesOut') ») en résolvant l'arbre de pairs de vitest 4.1.11. Ne pas repasser en « ^ » sans avoir vérifié qu'un « npm install » à froid aboutit.",
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "4.1.10",
+    "jsdom": "25.0.1",
+    "vitest": "4.1.10"
+  }
+}

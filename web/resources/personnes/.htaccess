@@ -1,0 +1,15 @@
+# Le composant est recopié DANS l'arborescence servie de chaque application intégratrice : il
+# emporte donc sa propre fermeture, plutôt que de compter sur les règles du projet d'accueil.
+#
+# Rien n'est accessible, sauf les fichiers qu'un navigateur doit pouvoir demander : la feuille de
+# style de l'écran de connexion et le script d'ouverture des menus au survol (js/personnes.js,
+# chargé par le menu « Mon compte »). Les classes PHP, les gabarits et les gabarits d'email sont
+# inclus côté serveur et n'ont aucune URL.
+
+Require all denied
+
+<FilesMatch "\.(css|js|map)$">
+    Require all granted
+</FilesMatch>
+
+Options -Indexes

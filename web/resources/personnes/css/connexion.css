@@ -1,0 +1,23 @@
+.personnes-carte-connexion {
+    max-width: 420px;
+    margin-top: 50px;
+}
+
+.personnes-titre-connexion {
+    color: #FFFFFF !important;
+}
+
+.personnes-champ-code {
+    font-size: 24px;
+    letter-spacing: 5px;
+}
+
+.personnes-mention {
+    color: var(--bs-secondary-color);
+    font-size: 12px;
+    font-style: italic;
+}
+
+.personnes-texte-petit {
+    font-size: 12px;
+}

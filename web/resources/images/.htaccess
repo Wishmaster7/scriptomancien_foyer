@@ -1,0 +1,13 @@
+# Images du décor : tout est refusé par défaut, seuls les formats d'image sont servis.
+#
+# MÊME RÈGLE QUE resources/css/ : le .htaccess de la racine ferme le code source (.php, .html), pas
+# le reste. Sans cette fermeture, un fichier déposé ici par distraction — une archive, un export —
+# serait servi à qui devine son nom.
+
+Require all denied
+
+<FilesMatch \.(jpg|jpeg|png|gif|svg|webp|ico)$>
+    Require all granted
+</FilesMatch>
+
+Options -Indexes

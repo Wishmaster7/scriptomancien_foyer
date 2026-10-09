@@ -1,0 +1,8 @@
+# Configuration Apache pour les polices web
+# Refuse tout accès par défaut, puis autorise les formats de police courants
+
+Require all denied
+
+<FilesMatch "\.(woff2?|ttf|otf|eot|svg)$">
+    Require all granted
+</FilesMatch>

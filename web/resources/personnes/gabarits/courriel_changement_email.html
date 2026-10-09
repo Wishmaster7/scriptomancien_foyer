@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmation de votre nouvelle adresse email</title>
+  <style>
+    {{STYLE_COURRIEL}}
+    .mention-ici { font-weight: 400; color: #555; }
+  </style>
+</head>
+<body class="corps">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="fond">
+    <tr>
+      <td class="cellule-centree">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="carte">
+
+          <tr>
+            <td class="entete">
+              {{ENTETE}}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="contenu">
+              <p class="paragraphe">
+                Bonjour {{PSEUDONYME}},
+              </p>
+              <p class="paragraphe">
+                Une <strong>demande de changement d'adresse email</strong> a été faite sur votre compte <a href="{{URL_APPLICATION}}" class="lien"><strong>{{NOM_SITE}}</strong></a> :
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="recapitulatif">
+                <tr>
+                  <td class="recapitulatif-cle">Adresse actuelle</td>
+                  <td class="recapitulatif-valeur">{{ANCIEN_EMAIL}}</td>
+                </tr>
+                <tr>
+                  <td class="recapitulatif-cle">Nouvelle adresse</td>
+                  <td class="recapitulatif-valeur">{{NOUVEL_EMAIL}} <span class="mention-ici">(celle-ci)</span></td>
+                </tr>
+              </table>
+
+              <p class="paragraphe-large">
+                Pour confirmer que cette boîte vous appartient et rendre le changement effectif, saisissez le code suivant dans la rubrique « Mon profil » :
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="bloc-code">
+                <tr>
+                  <td class="cellule-centree">
+                    <div class="encadre-code">
+                      <span class="code">{{CODE}}</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p class="mention">
+                Ce code est valide pendant <strong>1 heure</strong>.
+              </p>
+
+              <hr class="separateur">
+
+              <p class="note">
+                Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email — aucune modification ne sera effectuée sans ce code, et l'adresse de connexion du compte restera {{ANCIEN_EMAIL}}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="pied">
+              <p class="pied-texte">
+                <a href="{{URL_APPLICATION}}" class="lien-pied">{{URL_APPLICATION}}</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

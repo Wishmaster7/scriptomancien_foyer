@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         failOnRisky="true"
+         failOnWarning="true"
+         failOnEmptyTestSuite="true"
+         beStrictAboutOutputDuringTests="true"
+         beStrictAboutTestsThatDoNotTestAnything="true">
+
+    <testsuites>
+        <testsuite name="AllTests">
+            <directory>tests/web</directory>
+        </testsuite>
+        <!--
+            LES TESTS END-TO-END SONT UNE SUITE À PART, et ils ne sont pas mesurés : ils exercent un
+            serveur HTTP et un script lancés dans d'AUTRES processus, dont PCOV ne voit rien. Les
+            compter dans la couverture ferait chuter le taux sans qu'une ligne soit moins testée.
+        -->
+        <testsuite name="E2ETests">
+            <directory>tests/e2e</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">web</directory>
+        </include>
+        <exclude>
+            <!-- PHPMailer embarqué pour le déploiement : code tiers, jamais mesuré. -->
+            <directory>web/resources/dependencies</directory>
+            <!--
+                LA COPIE DU COMPOSANT « personnes » : elle est couverte dans le projet qui la
+                PUBLIE, et la mesurer ici obligerait à la retester à chaque réinstallation pour un
+                verdict déjà rendu là-bas. Seule son empreinte est vérifiée
+                (tests/web/resources/composantPersonnesTest.php).
+            -->
+            <directory>web/resources/personnes</directory>
+        </exclude>
+    </source>
+
+    <!--
+        Deux rapports, pour deux usages. Le HTML se lit (coverage/html/index.html) ; le Clover se
+        CONTRÔLE — c'est le format que lit un garde-fou de couverture minimale.
+    -->
+    <coverage>
+        <report>
+            <html outputDirectory="coverage/html" lowUpperBound="80" highLowerBound="100"/>
+            <clover outputFile="coverage/clover.xml"/>
+        </report>
+    </coverage>
+
+</phpunit>

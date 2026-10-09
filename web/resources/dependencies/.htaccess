@@ -1,0 +1,11 @@
+# Dépendances tierces VENDORÉES : du code source, jamais une ressource à servir.
+#
+# Ce répertoire existe parce que la racine de documents est web/ et que tout ce qui est au-dessus
+# — vendor/, composer.json — ne part pas sur le serveur. Une bibliothèque dont l'application a
+# besoin en production doit donc vivre ICI, sous la racine, et y être servie... par personne.
+#
+# Refus TOTAL, sans exception : ces fichiers sont inclus par PHP, jamais demandés par un
+# navigateur. Les servir livrerait le code source et, sur certaines configurations, exécuterait
+# un fichier hors de tout point d'entrée.
+
+Require all denied

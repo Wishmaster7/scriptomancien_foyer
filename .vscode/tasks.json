@@ -1,0 +1,76 @@
+{
+  "version": "2.0.0",
+  // Chaque tâche produit SON rapport dans coverage/, sans jamais écraser celui d'une autre —
+  // et la tâche par défaut (Ctrl+Maj+B) les produit TOUS : c'est ce que relit la synthèse des rapports
+  // du WAMP, et une suite laissée hors de cette séquence y afficherait un rapport de plus en plus vieux.
+  "tasks": [
+    {
+      "label": "1. Tests unitaires (avec couverture)",
+      "type": "shell",
+      // Écrit coverage/html/ (lisible) et coverage/clover.xml (contrôlé : c'est le fichier que lit
+      // tests/couverture.php, enchaîné par « composer test », qui échoue sous 100 % en nommant les
+      // lignes non couvertes).
+      "command": "composer test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "2. Tests E2E (sans couverture)",
+      "type": "shell",
+      // Écrit coverage/e2e/junit.xml. SANS couverture : le site s'exécute dans un autre processus
+      // (le serveur intégré), rien n'y serait compté — et la mesurer ici écraserait celle de la
+      // tâche 1 avec un relevé vide.
+      "command": "composer test:e2e",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "3. Tests JS (Vitest, avec couverture)",
+      "type": "shell",
+      // Écrit coverage/js/ : la couverture (clover.xml, index.html) et le journal junit.xml
+      // (vitest.config.mjs). Échoue sous 100 % sur l'un des quatre axes. Suppose « npm install ».
+      "command": "npm run test:coverage",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests unitaires (sans couverture)",
+      "type": "shell",
+      // Passe rapide pendant l'écriture d'un test. NE REMPLACE PAS la tâche 1 : sans couverture,
+      // elle ne met à jour aucun rapport — coverage/ garde celui de l'exécution précédente.
+      "command": "php vendor/bin/phpunit --no-coverage --testsuite AllTests",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Suite complète + couverture",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "1. Tests unitaires (avec couverture)",
+        "2. Tests E2E (sans couverture)",
+        "3. Tests JS (Vitest, avec couverture)"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Scripts de l'application : tout est refusé par défaut, seuls les .js (et leurs source maps) sont servis.
+# La carte de bootstrap.min.js est livrée : le fichier la réclame, et sans elle la console des outils de
+# développement signale une 404.
+
+Require all denied
+
+<FilesMatch "\.(js|map)$">
+    Require all granted
+</FilesMatch>
