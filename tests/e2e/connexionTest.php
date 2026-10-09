@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Foyer\App\BudgetScanController;
 use PHPUnit\Framework\Attributes\TestDox;
 
 require_once __DIR__ . '/E2ETestBase.php';
@@ -19,8 +20,8 @@ require_once __DIR__ . '/E2ETestBase.php';
  */
 class ConnexionTest extends E2ETestBase
 {
-    #[TestDox('Une personne connue se connecte et arrive sur la page d’accueil')]
-    public function testLeParcoursCompletMeneALAccueil(): void
+    #[TestDox('Une personne connue se connecte et arrive sur le scan d’un reçu')]
+    public function testLeParcoursCompletMeneAuScanDUnRecu(): void
     {
         $id = $this->creerIdentite('lea@example.test', 'Leandra');
 
@@ -52,14 +53,17 @@ class ConnexionTest extends E2ETestBase
             'csrf_token' => $this->jetonCsrf($page['corps']),
         ]);
         $this->assertSame(302, $reponse['statut']);
-        // LA REDIRECTION MÈNE À L'ACCUEIL, la racine nue : c'est là qu'on arrive en se connectant.
+        // LA REDIRECTION MÈNE À LA RACINE NUE, qui redirige à son tour vers la page par défaut : le scan d'un reçu.
         $this->assertSame('/', $reponse['location']);
+        $racine = $this->get('/');
+        $this->assertSame(302, $racine['statut']);
+        $this->assertSame(BudgetScanController::URL, $racine['location']);
 
-        // Arrivée : la page d'accueil, et le menu qui n'existe que pour une session ouverte.
-        $accueil = $this->get('/');
-        $this->assertSame(200, $accueil['statut']);
-        $this->assertStringContainsString('id="page-accueil"', $accueil['corps']);
-        $this->assertStringContainsString('id="navCompte"', $accueil['corps']);
+        // Arrivée : la page de scan, et le menu qui n'existe que pour une session ouverte.
+        $scan = $this->get(BudgetScanController::URL);
+        $this->assertSame(200, $scan['statut']);
+        $this->assertStringContainsString('id="page-budget-scan"', $scan['corps']);
+        $this->assertStringContainsString('id="navCompte"', $scan['corps']);
     }
 
     #[TestDox('Le code est consommé : le rejouer ne rouvre pas de session')]
@@ -133,7 +137,7 @@ class ConnexionTest extends E2ETestBase
             'accept_conditions' => '1',
             'csrf_token' => $this->jetonCsrf($page['corps']),
         ]);
-        $this->assertStringContainsString('id="page-accueil"', $this->get('/')['corps']);
+        $this->assertStringContainsString('id="page-budget-scan"', $this->get(BudgetScanController::URL)['corps']);
     }
 
     #[TestDox('Une adresse inconnue se comporte exactement comme une adresse connue')]
@@ -191,9 +195,9 @@ class ConnexionTest extends E2ETestBase
     {
         $this->creerIdentite('zoe@example.test', 'Zoelie');
         $this->seConnecter('zoe@example.test');
-        $this->assertStringContainsString('id="page-accueil"', $this->get('/')['corps']);
+        $page = $this->get(BudgetScanController::URL);
+        $this->assertStringContainsString('id="page-budget-scan"', $page['corps']);
 
-        $page = $this->get('/');
         $this->post('/', [
             'action' => 'deconnexion',
             'csrf_token' => $this->jetonCsrf($page['corps']),
@@ -252,7 +256,8 @@ class ConnexionTest extends E2ETestBase
     /** Repart d'une session vierge, comme un autre navigateur le ferait. */
     private function deconnecter(): void
     {
-        $page = $this->get('/');
+        // Une page qui porte un jeton, session ouverte ou non : « / » n'est plus qu'une redirection une fois connecté.
+        $page = $this->get(BudgetScanController::URL);
         $jeton = $this->jetonCsrf($page['corps']);
         $this->post('/', ['action' => 'deconnexion', 'csrf_token' => $jeton]);
     }

@@ -1,0 +1,42 @@
+{
+  "date_document": "2009-05-28T16:30",
+  "reference": "00007E8",
+  "numero_tva": null,
+  "vendeur": "CASHFLOW SA",
+  "lieu": "Rte de Denges 36, 1027 Lonay",
+  "description": "Vêtements et chaussures",
+  "total_imprime": 2058.9,
+  "total_ht": null,
+  "taxes": [
+    {
+      "nom": "tva",
+      "montant": 145.42
+    }
+  ],
+  "articles": [
+    {
+      "nom": "COSTUME JLJ NOIR 54",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 1950,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "chaussure howell",
+      "quantite": 1,
+      "prix_unitaire": null,
+      "montant": 100,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Chausettes JSC pleins de couleurs GRIS 41",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 8.9,
+      "douteux": false,
+      "monnaie": "CHF"
+    }
+  ]
+}

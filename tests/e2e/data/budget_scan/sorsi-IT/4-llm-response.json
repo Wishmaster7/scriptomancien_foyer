@@ -1,0 +1,53 @@
+{
+  "date_document": "2016-04-19T14:26",
+  "reference": "60",
+  "numero_tva": "IT02577410810",
+  "vendeur": "SORSI E MORSI DI NOLFO ROBERTO E C.V.",
+  "lieu": "EMANUELE 55 TRAPANI",
+  "description": "Bar",
+  "total_imprime": 32,
+  "total_ht": null,
+  "taxes": [],
+  "articles": [
+    {
+      "nom": "BAR",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 8,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "BAR",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 7,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "BAR",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 6,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "BAR",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 9,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Article illisible",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 2,
+      "douteux": false,
+      "monnaie": "EUR"
+    }
+  ]
+}

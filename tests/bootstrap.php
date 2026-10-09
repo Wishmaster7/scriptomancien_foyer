@@ -25,6 +25,18 @@ putenv('DB_DATABASE=' . (getenv('TEST_DB_DATABASE') ?: '3t75aa_foyer_phpunit'));
 // annuaire partagé entre applications serait détruit par la réinitialisation de l'une d'elles.
 putenv('DB_PERSONNES=' . (getenv('TEST_DB_PERSONNES') ?: '3t75aa_foyer_personnes_phpunit'));
 
+// LA VRAIE API LLM D'INFOMANIAK N'EST JAMAIS APPELÉE PAR UN TEST — elle est facturée. Chaque test
+// d'analyse substitue son transport ({@see \Foyer\App\AnalyseurTicket::substituerTransport()}) ; un
+// test qui l'oublierait viserait cette adresse locale, où rien n'écoute (port 9, « discard »), et
+// échouerait au lieu d'appeler Infomaniak. BudgetScanAnalyseurTest vérifie que ce verrou tient.
+const ADRESSE_LLM_DE_TEST = 'http://127.0.0.1:9/2/ai/{product_id}/openai/v1/chat/completions';
+putenv('INFOMANIAK_AI_URL=' . ADRESSE_LLM_DE_TEST);
+
+// DE MÊME, LE SERVICE DES COURS DE CHANGE n'est jamais appelé : un test qui oublierait de substituer
+// le transport de CoursDeChange viserait ce port où rien n'écoute.
+const ADRESSE_COURS_DE_TEST = 'http://127.0.0.1:9/v1';
+putenv('COURS_CHANGE_URL=' . ADRESSE_COURS_DE_TEST);
+
 $GLOBALS['emails_envoyes'] = [];
 
 // L'application est montée EXACTEMENT comme en production : même amorçage, même configuration

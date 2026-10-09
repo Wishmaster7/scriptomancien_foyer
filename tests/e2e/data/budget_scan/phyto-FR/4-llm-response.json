@@ -1,0 +1,50 @@
+{
+  "date_document": "2011-09-02T08:16",
+  "reference": "0002706",
+  "numero_tva": null,
+  "vendeur": "PHYTO 5 Shop & Spa",
+  "lieu": "Rue Grand St Jean 5, 1000 Lausanne",
+  "description": "Produits de beauté et accessoires",
+  "total_imprime": 85,
+  "total_ht": null,
+  "taxes": [
+    {
+      "nom": "tva 8.00%",
+      "montant": 6.3
+    }
+  ],
+  "articles": [
+    {
+      "nom": "BOUTON MANCHETTES",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 98,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Rabais",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": -49,
+      "douteux": true,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "lampe avec pied",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 15,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Desalley Chemin de Fer 2008",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 21,
+      "douteux": false,
+      "monnaie": "CHF"
+    }
+  ]
+}

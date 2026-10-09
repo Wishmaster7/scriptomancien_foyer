@@ -22,8 +22,20 @@ abstract class E2ETestBase extends TestCase
     /** @var resource|null */
     private static $serveur;
 
+    /** @var resource|null Le faux LLM d'Infomaniak (serveurLlmFactice.php). */
+    private static $serveurLlm;
+
     /** @var array<int, resource> */
     private static array $tuyaux = [];
+
+    /** Port du faux LLM : à côté de celui de l'application. */
+    private const PORT_LLM = 8092;
+
+    /** Fichier où le faux LLM consigne chaque requête reçue. */
+    protected static string $journalLlm = '';
+
+    /** Fichier dont le faux LLM rend le contenu comme réponse du modèle ({@see self::imposerReponseLlm()}). */
+    private static string $reponseLlm = '';
 
     /**
      * Journal du serveur intégré.
@@ -61,6 +73,29 @@ abstract class E2ETestBase extends TestCase
             1 => ['file', self::$journal, 'a'],
             2 => ['file', self::$journal, 'a'],
         ];
+
+        // LE LLM EST UN FAUX, servi en local : la vraie API d'Infomaniak est facturée, et AUCUN test
+        // ne doit l'atteindre. Les variables d'analyse sont donc toutes IMPOSÉES ici, quoi que
+        // contienne l'environnement de la personne qui lance la suite (un vrai jeton compris).
+        self::$journalLlm = (string) tempnam(sys_get_temp_dir(), 'e2e_llm_');
+        self::$reponseLlm = (string) tempnam(sys_get_temp_dir(), 'e2e_llm_reponse_');
+        $tuyauxLlm = [];
+        self::$serveurLlm = proc_open(
+            [PHP_BINARY, '-S', $hote . ':' . self::PORT_LLM, __DIR__ . '/serveurLlmFactice.php'],
+            $descripteurs,
+            $tuyauxLlm,
+            null,
+            ['LLM_FACTICE_JOURNAL' => self::$journalLlm, 'LLM_FACTICE_REPONSE' => self::$reponseLlm] + getenv()
+        );
+        self::attendre('http://' . $hote . ':' . self::PORT_LLM . '/');
+        $environnement['INFOMANIAK_AI_URL'] = 'http://' . $hote . ':' . self::PORT_LLM . '/2/ai/{product_id}/openai/v1/chat/completions';
+        $environnement['INFOMANIAK_AI_TOKEN'] = 'jeton-e2e';
+        $environnement['INFOMANIAK_AI_PRODUCT_ID'] = '4242';
+        unset($environnement['INFOMANIAK_AI_MODEL']);
+        // Le service des cours de change est faux lui aussi, servi par le même serveur local.
+        $environnement['COURS_CHANGE_URL'] = 'http://' . $hote . ':' . self::PORT_LLM . '/v1';
+        // Le mode debug est ALLUMÉ : un échec d'analyse raconte alors, dans la réponse, l'appel au faux LLM.
+        $environnement['DEBUG_MODE'] = 'true';
 
         self::$serveur = proc_open(
             [
@@ -105,10 +140,19 @@ abstract class E2ETestBase extends TestCase
         if (isset(self::$db)) {
             self::viderLesTables();
         }
-        if (is_resource(self::$serveur)) {
-            proc_terminate(self::$serveur);
-            proc_close(self::$serveur);
+        foreach ([self::$serveur, self::$serveurLlm] as $processus) {
+            if (is_resource($processus)) {
+                proc_terminate($processus);
+                proc_close($processus);
+            }
         }
+        foreach ([self::$journalLlm, self::$reponseLlm] as $fichier) {
+            if ($fichier !== '' && is_file($fichier)) {
+                unlink($fichier);
+            }
+        }
+        self::$journalLlm = '';
+        self::$reponseLlm = '';
         foreach (self::$tuyaux as $tuyau) {
             if (is_resource($tuyau)) {
                 fclose($tuyau);
@@ -126,6 +170,16 @@ abstract class E2ETestBase extends TestCase
         // s'authentifieraient l'un pour l'autre, et le second ne prouverait plus rien.
         $this->cookies = (string) tempnam(sys_get_temp_dir(), 'e2e_cookies_');
         self::viderLesTables();
+        // UN JOURNAL DU FAUX LLM PAR TEST : chacun compte les appels qu'il a faits, et ceux-là seuls ;
+        // et aucune réponse héritée du test précédent.
+        file_put_contents(self::$journalLlm, '');
+        file_put_contents(self::$reponseLlm, '');
+    }
+
+    /** La réponse que le faux LLM rendra comme contenu du message du modèle, jusqu'à la fin du test. */
+    protected function imposerReponseLlm(string $contenu): void
+    {
+        file_put_contents(self::$reponseLlm, $contenu);
     }
 
     protected function tearDown(): void
@@ -163,6 +217,10 @@ abstract class E2ETestBase extends TestCase
     private static function viderLesTables(): void
     {
         // L'ORDRE EST CELUI DES CLÉS ÉTRANGÈRES : les tables locales d'abord, l'annuaire ensuite.
+        self::$db->query('DELETE FROM BUDGET_SCAN_ARTICLE');
+        self::$db->query('DELETE FROM BUDGET_SCAN');
+        self::$db->query('DELETE FROM FOYER_PERSONNE');
+        self::$db->query('DELETE FROM FOYER');
         self::$db->query('DELETE FROM LOGS');
         self::$db->query('DELETE FROM PERSONNE');
         self::$db->query('DELETE FROM ' . self::tableAnnuaire('RATE_LIMIT'));
@@ -311,11 +369,17 @@ abstract class E2ETestBase extends TestCase
         ]);
     }
 
-    /** Attend que le serveur intégré réponde, ou échoue en le disant. */
+    /** Attend que le serveur intégré de l'application réponde, ou échoue en le disant. */
     private static function attendreLeServeur(): void
     {
+        self::attendre(self::$baseUrl . '/');
+    }
+
+    /** Attend qu'un serveur intégré réponde à cette adresse, ou échoue en le disant. */
+    private static function attendre(string $url): void
+    {
         for ($essai = 0; $essai < 50; $essai++) {
-            $ch = curl_init(self::$baseUrl . '/');
+            $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300);
             curl_exec($ch);

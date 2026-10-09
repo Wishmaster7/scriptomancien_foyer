@@ -114,6 +114,10 @@ abstract class TestBase extends TestCase
     protected function insererDonneesDeBase(): void
     {
         // L'ORDRE EST CELUI DES CLÉS ÉTRANGÈRES : les lignes locales d'abord, l'annuaire ensuite.
+        self::$db->query('DELETE FROM BUDGET_SCAN_ARTICLE');
+        self::$db->query('DELETE FROM BUDGET_SCAN');
+        self::$db->query('DELETE FROM FOYER_PERSONNE');
+        self::$db->query('DELETE FROM FOYER');
         self::$db->query('DELETE FROM LOGS');
         self::$db->query('DELETE FROM PERSONNE');
         self::$db->query('DELETE FROM ' . self::tableMinuteur());
@@ -169,6 +173,65 @@ abstract class TestBase extends TestCase
         $stmt->bind_param('iiii', $personneId, $auteur, $auteur, $actif);
         $stmt->execute();
         $stmt->close();
+    }
+
+    /**
+     * Crée un foyer, y rattache ces personnes, et rend son identifiant.
+     *
+     * @param list<int> $membres
+     */
+    protected function creerFoyer(string $nom, array $membres = []): int
+    {
+        $auteur = self::$adminId;
+        $stmt = self::$db->prepare('INSERT INTO FOYER (NOM, CREATED_BY, LAST_MODIFIED_BY) VALUES (?, ?, ?)');
+        $stmt->bind_param('sii', $nom, $auteur, $auteur);
+        $stmt->execute();
+        $foyerId = (int) self::$db->insert_id;
+        $stmt->close();
+
+        foreach ($membres as $personneId) {
+            self::$db->query(
+                "INSERT INTO FOYER_PERSONNE (FOYER_ID, PERSONNE_ID, CREATED_BY, LAST_MODIFIED_BY)
+                 VALUES ($foyerId, $personneId, $auteur, $auteur)"
+            );
+        }
+
+        return $foyerId;
+    }
+
+    /**
+     * Crée une dépense et ses articles, et rend son identifiant.
+     *
+     * @param list<array{0: string, 1: string, 2?: string}> $articles [nom, montant, monnaie]
+     */
+    protected function creerDepense(
+        int $foyerId,
+        int $personneId,
+        string $date,
+        array $articles = [['Pain', '3.50']],
+        string $vendeur = 'Boulangerie',
+        string $statut = 'ACTIF'
+    ): int {
+        $stmt = self::$db->prepare(
+            'INSERT INTO BUDGET_SCAN (FOYER_ID, PERSONNE_ID, DATE_DOCUMENT, VENDEUR, STATUT, CREATED_BY, LAST_MODIFIED_BY)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->bind_param('iisssii', $foyerId, $personneId, $date, $vendeur, $statut, $personneId, $personneId);
+        $stmt->execute();
+        $scanId = (int) self::$db->insert_id;
+        $stmt->close();
+
+        foreach ($articles as $article) {
+            $monnaie = $article[2] ?? 'CHF';
+            $stmt = self::$db->prepare(
+                'INSERT INTO BUDGET_SCAN_ARTICLE (SCAN_ID, NOM, MONTANT, MONNAIE, CREATED_BY, LAST_MODIFIED_BY) VALUES (?, ?, ?, ?, ?, ?)'
+            );
+            $stmt->bind_param('isssii', $scanId, $article[0], $article[1], $monnaie, $personneId, $personneId);
+            $stmt->execute();
+            $stmt->close();
+        }
+
+        return $scanId;
     }
 
     /** Ouvre une session authentifiée sur cette identité. */

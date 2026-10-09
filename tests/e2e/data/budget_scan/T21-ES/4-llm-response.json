@@ -1,0 +1,77 @@
+{
+  "date_document": "2025-07-16T16:11",
+  "reference": null,
+  "numero_tva": null,
+  "vendeur": null,
+  "lieu": null,
+  "description": "Restaurant",
+  "total_imprime": 45.8,
+  "total_ht": 41.64,
+  "taxes": [],
+  "articles": [
+    {
+      "nom": "AQUARIUS NARANJA",
+      "quantite": 1,
+      "prix_unitaire": 2.5,
+      "montant": 2.5,
+      "douteux": true,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "AQUARIUS LIMON",
+      "quantite": 1,
+      "prix_unitaire": 2.5,
+      "montant": 2.5,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "ESPETO SARDINA",
+      "quantite": 3,
+      "prix_unitaire": 3,
+      "montant": 9,
+      "douteux": true,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pan",
+      "quantite": 2,
+      "prix_unitaire": 1,
+      "montant": 2,
+      "douteux": true,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "FRITURA PARA 2",
+      "quantite": 1,
+      "prix_unitaire": 18,
+      "montant": 18,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "PINCHO LANGOST.",
+      "quantite": 1,
+      "prix_unitaire": 3.8,
+      "montant": 3.8,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Alioli",
+      "quantite": 1,
+      "prix_unitaire": 1,
+      "montant": 1,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "PROPINA",
+      "quantite": 2,
+      "prix_unitaire": 3.5,
+      "montant": 17,
+      "douteux": false,
+      "monnaie": "EUR"
+    }
+  ]
+}

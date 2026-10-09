@@ -2,7 +2,7 @@
   "name": "foyer",
   "version": "1.0.0",
   "private": true,
-  "description": "Tests unitaires JavaScript (Vitest) des deux scripts servis que nous possédons : l'horloge du pied de page et la recopie des lignes du mode debug",
+  "description": "Tests unitaires JavaScript (Vitest) des scripts servis que nous possédons : l'horloge du pied de page, la recopie des lignes du mode debug, l'installation mobile et la lecture des reçus",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

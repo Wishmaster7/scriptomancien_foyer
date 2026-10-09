@@ -123,6 +123,38 @@ Puis dans `c:\Windows\System32\drivers\etc\hosts` : `127.0.0.1 foyer.localhost`.
 En développement, les emails partent vers **MailHog** (SMTP `localhost:1025`, interface web
 `http://localhost:8025`), qui est la valeur par défaut. Aucune configuration n'est nécessaire.
 
+### Certificats HTTPS de PHP (WampServer)
+
+Le PHP de WampServer est livré **sans liste de certificats racine** : cURL y refuse tout appel HTTPS
+— ici l'API LLM d'Infomaniak — avec l'erreur `cURL n° 60 : SSL certificate problem: self-signed
+certificate in certificate chain` (visible avec `DEBUG_MODE`). La chaîne d'Infomaniak est saine :
+c'est sa racine, USERTrust, que PHP ne sait pas reconnaître.
+
+1. Télécharger la liste de curl (racines de Mozilla) et vérifier son empreinte :
+   [`cacert.pem`](https://curl.se/ca/cacert.pem) et
+   [`cacert.pem.sha256`](https://curl.se/ca/cacert.pem.sha256).
+2. La déposer dans `C:\wamp64\bin\php\php8.5.0\extras\ssl\cacert.pem`.
+3. Décommenter et renseigner, dans **les deux** fichiers de configuration de cette version de PHP —
+   `php.ini` (ligne de commande, tests) **et** `phpForApache.ini` (le site) :
+
+   ```ini
+   curl.cainfo = "C:/wamp64/bin/php/php8.5.0/extras/ssl/cacert.pem"
+   openssl.cafile = "C:/wamp64/bin/php/php8.5.0/extras/ssl/cacert.pem"
+   ```
+
+4. Redémarrer Apache (WampServer › Redémarrer les services).
+
+Vérification, en PowerShell — un code HTTP d'Infomaniak (401, 404…) **sans erreur à sa suite**
+prouve que la connexion HTTPS passe ; `0` suivi d'une erreur cURL, qu'elle échoue encore :
+
+```powershell
+php -r "`$c = curl_init('https://api.infomaniak.com/2/ai/1/openai/v1/chat/completions'); curl_setopt(`$c, CURLOPT_RETURNTRANSFER, true); curl_exec(`$c); echo curl_getinfo(`$c, CURLINFO_HTTP_CODE), ' ', curl_error(`$c);"
+```
+
+Le réglage vaut pour **une version de PHP** : en changer dans WampServer, c'est le reporter dans ses
+deux `.ini`. Il est propre au poste de développement — sous Linux, chez Infomaniak, PHP utilise les
+certificats du système et rien n'est à régler.
+
 ### Dépendances
 
 ```
@@ -137,8 +169,10 @@ recopier `vendor/phpmailer/phpmailer/src/*.php` et `LICENSE` dans ce répertoire
 
 ## Variables d'environnement
 
-Toutes ont une valeur par défaut adaptée au développement local ; en production, l'hébergeur les
-fournit.
+Toutes ont une valeur par défaut adaptée au développement local, **sauf les deux de l'analyse des
+reçus** (`INFOMANIAK_AI_TOKEN`, `INFOMANIAK_AI_PRODUCT_ID`) : sans elles, la page « Scanner un reçu »
+lit toujours le texte dans le navigateur, mais ne l'analyse pas et ouvre le formulaire vide pour une
+saisie à la main. En production, l'hébergeur les fournit.
 
 | Variable                          | Défaut                              | Rôle                                                                                                                          |
 |:----------------------------------|:------------------------------------|:------------------------------------------------------------------------------------------------------------------------------|
@@ -148,10 +182,48 @@ fournit.
 | `DB_DATABASE`                     | `3t75aa_foyer`                      | **Schéma de cette application** — celui de la connexion                                                                       |
 | `DB_PERSONNES`                    | `3t75aa_personnes`                  | **Schéma d'identité**, celui que le composant qualifie                                                                        |
 | `APP_URL`                         | `https://foyer.scriptomancien.com/` | Adresse publique, écrite dans les emails                                                                                      |
-| `DEBUG_MODE`                      | `false`                             | Mode debug (`SiteConfig::debugMode()`) : informations ajoutées dans la console JavaScript du navigateur. Jamais en production |
+| `DEBUG_MODE`                      | `false`                             | Mode debug (`SiteConfig::debugMode()`) : informations ajoutées dans la console JavaScript du navigateur, et récit complet d'une analyse de reçu échouée (appels, statuts, erreur cURL, réponse brute de l'API) dans son message d'erreur. Jamais en production |
 | `SMTP_HOST` / `SMTP_PORT`         | `localhost` / `1025`                | Serveur SMTP (MailHog par défaut)                                                                                             |
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | *(vides)*                           | Compte SMTP. Renseignés, ils entraînent authentification **et** STARTTLS                                                      |
 | `MAIL_FROM` / `MAIL_FROM_NAME`    | `noreply@foyer.localhost`           | Adresse d'expédition — en production, elle doit correspondre au compte authentifié, sans quoi l'hébergeur rejette l'envoi     |
+| `INFOMANIAK_AI_TOKEN`             | *(vide : analyse désactivée)*       | Jeton de l'API LLM d'Infomaniak. **Secret, jamais versionné**                                                                 |
+| `INFOMANIAK_AI_PRODUCT_ID`        | *(vide : analyse désactivée)*       | Identifiant du produit AI Services, inséré dans l'adresse de l'API (`SiteConfig::INFOMANIAK_URL_API`)                         |
+| `INFOMANIAK_AI_MODEL`             | `google/gemma-4-31B-it`             | Modèle d'analyse des reçus (`SiteConfig::INFOMANIAK_MODELE`), à changer quand Infomaniak retire le sien                       |
+| `INFOMANIAK_AI_URL`               | `SiteConfig::INFOMANIAK_URL_API`    | Adresse de l'API (gabarit avec `{product_id}`). **Réservée aux tests**, qui la pointent sur un serveur local : jamais en production |
+| `COURS_CHANGE_URL`                | `SiteConfig::COURS_CHANGE_URL_API`  | Service des cours de change (Frankfurter, cours de référence de la BCE, sans clé). **Réservée aux tests**, comme la précédente |
+
+### L'analyse des reçus (API LLM d'Infomaniak)
+
+1. Dans le Manager Infomaniak, ouvrir le produit **AI Services** et relever son identifiant →
+   `INFOMANIAK_AI_PRODUCT_ID`.
+2. Dans **Développeur › Jetons d'API**, créer un jeton avec le droit **AI Tools** →
+   `INFOMANIAK_AI_TOKEN`.
+3. Facultatif : choisir un autre modèle de la
+   [grille tarifaire](https://www.infomaniak.com/en/hosting/ai-services/prices) →
+   `INFOMANIAK_AI_MODEL`, sous son nom exact (`mistralai/Ministral-3-14B-Instruct-2512`…). Un modèle qui refuse le
+   schéma JSON imposé est rappelé sans lui ; sa réponse reste validée par `AnalyseurTicket`.
+
+En local, dans le VirtualHost (puis redémarrer Apache) ; en production, dans la configuration de
+l'hébergement ou un `.htaccess` hors de git :
+
+```apache
+SetEnv INFOMANIAK_AI_TOKEN "…"
+SetEnv INFOMANIAK_AI_PRODUCT_ID "…"
+SetEnv INFOMANIAK_AI_MODEL "google/gemma-4-31B-it"
+```
+
+Chaque analyse est **facturée** à la consommation de tokens : `SiteConfig::ANALYSES_PAR_HEURE` en
+limite le nombre par personne et par heure.
+
+### Les monnaies
+
+Chaque foyer a sa **monnaie** (`FOYER.MONNAIE_REF`), dans laquelle l'écran Budget présente toutes ses
+dépenses ; elle est figée dès la première dépense. Les articles restent enregistrés dans la monnaie du
+reçu ; un reçu dans une autre monnaie porte son **cours de change** (`BUDGET_SCAN.COURS_CHANGE`,
+nombre d'unités de la monnaie du foyer pour une unité de celle du reçu). Ce cours n'est **jamais**
+demandé au LLM, qui n'a pas accès à internet et l'inventerait : `CoursDeChange` le demande au service
+[Frankfurter](https://frankfurter.dev) (cours de référence de la BCE, gratuit, sans clé), en n'envoyant
+que la date et les deux monnaies. Proposé avec l'analyse, il reste modifiable dans le formulaire.
 
 ## Migrations
 
@@ -197,6 +269,24 @@ un identifiant régénéré au passage, et le **refus d'un accès fermé** — c
 l'étape 1, refusé à l'étape 2, et **non consommé**, puisque le refus défait sa transaction. Ils ne
 sont pas mesurés : ils exercent des processus dont PCOV ne voit rien, et les compter ferait chuter
 le taux sans qu'une ligne soit moins testée.
+
+**La vraie API LLM d'Infomaniak n'est jamais appelée par un test** — elle est facturée.
+`tests/bootstrap.php` pointe `INFOMANIAK_AI_URL` sur un port local où rien n'écoute (un test unitaire
+qui oublierait de substituer son transport échoue au lieu d'appeler Infomaniak), et les tests
+end-to-end lancent un **faux LLM**, `tests/e2e/serveurLlmFactice.php`, qui rend la réponse que le
+test lui impose. Chaque ticket est un **répertoire** de `tests/e2e/data/budget_scan/`, et
+`tests/e2e/budgetScanTest.php` en fait un sous-test **sans qu'on y touche**. Il porte exactement
+cinq fichiers : `1-source.jpg` (la photo), `2-lang-XX.md` (XX : la langue du drapeau, FR, EN, DE,
+ES ou IT — seul le nom compte), `3-ocr-extract.txt` (le texte que la page en tire : image mise à
+l'échelle, encre rouge effacée, cinq lectures de Tesseract — deux en taille réelle, trois réduites —
+fusionnées dans le navigateur en **un seul texte** : la meilleure lecture en taille réelle, corrigée
+mot à mot par le vote des autres, complétée des lignes qu'elle a perdues, compactée, mots douteux
+marqués ⟦ ⟧), `4-llm-response.json` (la
+réponse du modèle à ce texte) et `5-expected.json` (la proposition attendue, **lue sur la photo**).
+Un fichier manquant, en trop ou mal nommé fait échouer le test. La proposition de l'application est
+comparée à l'attendu — les règles de comparaison sont en tête de `budgetScanTest.php` — et le test
+liste tous les écarts : une lecture OCR ou une réponse réelle fautive devient un test rouge, à faire
+passer en corrigeant `resources/js/budget-scan.js` ou la consigne (`AnalyseurTicket::consigne()`).
 
 **La couverture est de 100 %, et c'est un seuil que quelque chose VÉRIFIE** :
 `tests/couverture.php`, enchaîné par `composer test`, lit le rapport Clover et refuse en nommant les

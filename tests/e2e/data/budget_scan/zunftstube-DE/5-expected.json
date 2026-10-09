@@ -1,0 +1,25 @@
+{
+  "date_document": "2018-04-10T21:52",
+  "reference": "52",
+  "numero_tva": "CHE-101.271.051 MWST",
+  "vendeur": "Restaurant & Zunftstube Weisser Wind",
+  "lieu": "Oberdorfstrasse 20, 8001 Zürich",
+  "total_imprime": "69.30",
+  "articles": [
+    {
+      "nom": "Leffe 33 cl",
+      "montant": "20.80",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Walliser Rösti",
+      "montant": "23.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Bratwurst",
+      "montant": "25.50",
+      "monnaie": "CHF"
+    }
+  ]
+}

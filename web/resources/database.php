@@ -61,6 +61,45 @@ class Database
         return getenv('DB_DATABASE') ?: '3t75aa_foyer';
     }
 
+    /**
+     * Prépare et exécute une requête paramétrée, et rend la requête exécutée.
+     *
+     * LÈVE quand la base refuse, que mysqli signale ses erreurs par exception (production) ou par
+     * un retour faux (tests) : l'appelant n'a qu'un seul cas d'échec à traiter.
+     *
+     * @param list<mixed> $parametres
+     */
+    public static function executer(string $sql, string $types = '', array $parametres = []): \mysqli_stmt
+    {
+        $stmt = self::getConnection()->prepare($sql);
+        if ($stmt === false) {
+            throw new \RuntimeException('Requête impossible à préparer.');
+        }
+        if ($types !== '') {
+            $stmt->bind_param($types, ...$parametres);
+        }
+        if (!$stmt->execute()) {
+            throw new \RuntimeException('Requête refusée par la base.');
+        }
+
+        return $stmt;
+    }
+
+    /**
+     * Les lignes d'une requête de lecture paramétrée.
+     *
+     * @param  list<mixed>                      $parametres
+     * @return list<array<string, mixed>>
+     */
+    public static function lignes(string $sql, string $types = '', array $parametres = []): array
+    {
+        $stmt = self::executer($sql, $types, $parametres);
+        $lignes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $lignes;
+    }
+
     /** Injecte (ou réinitialise) la connexion partagée. Réservé aux tests. */
     public static function setConnection(?\mysqli $connexion): void
     {

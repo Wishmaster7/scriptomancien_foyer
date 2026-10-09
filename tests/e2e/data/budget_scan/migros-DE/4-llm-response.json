@@ -1,0 +1,158 @@
+{
+  "date_document": "2013-08-14T10:12",
+  "reference": null,
+  "numero_tva": "CHE-105.970.604",
+  "vendeur": "GENOSSENSCHAFT MIGROS ZURICH",
+  "lieu": "M PARADIES",
+  "description": "Courses alimentaires",
+  "total_imprime": 36.95,
+  "total_ht": null,
+  "taxes": [
+    {
+      "nom": "MWST 2.50%",
+      "montant": 0.56
+    },
+    {
+      "nom": "MWST 8.00%",
+      "montant": 1.04
+    }
+  ],
+  "articles": [
+    {
+      "nom": "Leger Aprikosen Konfit",
+      "quantite": 1,
+      "prix_unitaire": 1.9,
+      "montant": 1.9,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Knoblauch",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 0.9,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Leger Aprikosen Konfit",
+      "quantite": 1,
+      "prix_unitaire": 1.9,
+      "montant": 1.9,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 0.55,
+      "douteux": true,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "quantite": 1,
+      "prix_unitaire": 0.55,
+      "montant": 0.55,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "quantite": 1,
+      "prix_unitaire": 0.55,
+      "montant": 0.55,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 0.55,
+      "douteux": true,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Nissin Soba Classic",
+      "quantite": 1,
+      "prix_unitaire": 1.8,
+      "montant": 1.8,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Landjäger",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 4.05,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Aenisstängel",
+      "quantite": 1,
+      "prix_unitaire": 1.7,
+      "montant": 1.7,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Bio Appenzeller",
+      "quantite": 1,
+      "prix_unitaire": 3.45,
+      "montant": 3.45,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Asia90",
+      "quantite": 1,
+      "prix_unitaire": 3.15,
+      "montant": 3.15,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Radieschen",
+      "quantite": 1,
+      "prix_unitaire": 1.9,
+      "montant": 1.9,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "I am Moisture Condit",
+      "quantite": 2,
+      "prix_unitaire": 2.4,
+      "montant": 2.4,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Beauty Zopfring",
+      "quantite": 2,
+      "prix_unitaire": 1.7,
+      "montant": 1.7,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Cosano Regular",
+      "quantite": 2,
+      "prix_unitaire": 4.95,
+      "montant": 4.95,
+      "douteux": false,
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Cosano Regular",
+      "quantite": 2,
+      "prix_unitaire": 4.95,
+      "montant": 4.95,
+      "douteux": false,
+      "monnaie": "CHF"
+    }
+  ]
+}

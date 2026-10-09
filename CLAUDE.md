@@ -27,6 +27,9 @@ It provides **only** the auth module, the "Mon compte" menu and "Mon profil". Ba
 - `tests/js/` (Vitest, 100% four axes) covers only the two scripts we own; the component's `personnes.js` and vendored Bootstrap are excluded. Defensive branches use `avecPrepareEnEchec()`/`avecExecuteEnEchec()` — they break **both** connections (component config *and* the `Database` singleton). `Utils::quitter()` always throws, never `exit`.
 - `tests/e2e/` (`composer test:e2e`) is separate and deliberately unmeasured. Never point it at a real neighbouring project.
 
+## Money
+- **An exchange rate never comes from the LLM** (no internet: it would invent one) — only from `CoursDeChange` (ECB via Frankfurter) or the user. `FOYER.MONNAIE_REF` is frozen once the household has an expense: stored rates target it.
+
 ## Code style
 PSR-12, `declare(strict_types=1)`, php-cs-fixer v3 (auto-applied on write, never by hand) → `.claude/rules/shell-tooling.md`. Templates: `<?php // … ?>` never `<!-- … -->`. **No CDN, ever** — Bootstrap/FontAwesome served from `web/resources/` (GDPR articles 10/11/14; `indexTest.php` fails on any off-site `<link>`/`<script>`). Dark theme via `prefers-color-scheme` only, role variables (`--texte-courant`…), never `--primary-*` direct.
 **The two legal pages state what the schema records, column by column** — adding a column or a journal entry means going back to `cgu_template.php`/`rgpd_template.php`. Announcing less than what is stored is false; announcing more just as much.

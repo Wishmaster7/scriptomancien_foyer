@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-use Foyer\App\AccueilController;
 use Foyer\App\AuthentificationController;
+use Foyer\App\BudgetController;
+use Foyer\App\BudgetScanController;
 use Foyer\App\Compte;
 use Foyer\App\Flash;
+use Foyer\App\FoyersController;
 use Foyer\App\ProfilController;
 use Foyer\App\Utils;
 
@@ -70,8 +72,37 @@ if ($action === 'profil') {
     return;
 }
 
-// L'ACCUEIL EST LE DÉFAUT, et c'est ce qui fait de « / » une page et non une redirection : une
-// action inconnue y retombe plutôt que d'ouvrir un écran qu'on n'a pas demandé. C'était le profil
-// auparavant — une action mal orthographiée présentait alors un formulaire de modification.
-require_once __DIR__ . '/accueil/controller.php';
-(new AccueilController())->afficher();
+if (in_array($action, ['budget', 'budget_scan', 'budget_scan_analyser'], true)) {
+    require_once __DIR__ . '/foyers/model.php';
+    require_once __DIR__ . '/budget/model.php';
+    require_once __DIR__ . '/budget/controller.php';
+    require_once __DIR__ . '/budget_scan/analyseur.php';
+    require_once __DIR__ . '/budget_scan/cours.php';
+    require_once __DIR__ . '/budget_scan/model.php';
+    require_once __DIR__ . '/budget_scan/controller.php';
+
+    match ($action) {
+        'budget' => (new BudgetController())->traiter(),
+        'budget_scan' => (new BudgetScanController())->traiter(),
+        'budget_scan_analyser' => (new BudgetScanController())->analyser(),
+    };
+
+    return;
+}
+
+// LES FOYERS NE SE GÈRENT QUE PAR UN ADMINISTRATEUR : pour toute autre personne, l'action n'existe
+// pas, et la requête retombe sur l'accueil.
+if ($action === 'foyers' && Compte::estAdmin()) {
+    require_once __DIR__ . '/foyers/model.php';
+    require_once __DIR__ . '/foyers/controller.php';
+    (new FoyersController())->traiter();
+
+    return;
+}
+
+// LE SCAN D'UN REÇU EST LA PAGE PAR DÉFAUT : « / », où mène la connexion, et toute action inconnue y
+// sont REDIRIGÉS, plutôt que servis sous « / » — l'adresse affichée est la sienne, et un POST égaré
+// n'enregistre aucun reçu. Jamais le profil : une action mal orthographiée présentait alors un
+// formulaire de modification que personne n'avait demandé.
+require_once __DIR__ . '/budget_scan/controller.php';
+Utils::rediriger(BudgetScanController::URL);

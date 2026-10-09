@@ -88,9 +88,10 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     <strong>données du foyer</strong>, réservé aux personnes que l'administration de ce site y admet.
                 </p>
                 <p>
-                    <strong>À ce jour, l'application ne fait que deux choses</strong> : reconnaître une personne admise,
-                    et lui permettre de consulter et de modifier son propre profil. Les écrans consacrés aux données du
-                    foyer ne sont pas encore ouverts.
+                    <strong>L'application fait trois choses</strong> : reconnaître une personne admise ; lui permettre
+                    de consulter et de modifier son propre profil ; et lui permettre de <strong>tenir le budget de ses
+                    foyers</strong> — enregistrer des dépenses, au besoin à partir de la photo d'un reçu, et consulter
+                    celles des foyers dont elle est membre.
                 </p>
                 <p>
                     L'<strong>identité</strong> dont elle se sert — une adresse e-mail, un pseudonyme et,
@@ -122,6 +123,11 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     validation du code d'authentification reçu par courriel. L'application en conserve la
                     <strong>date</strong>, écrasée à chaque nouvelle acceptation (voir l'article 4 de la
                     <a href="/rgpd">politique de protection des données à caractère personnel</a>).
+                </p>
+                <p>
+                    Accepter les présentes conditions, c'est aussi accepter les <strong>engagements propres à la lecture
+                    des reçus</strong> que l'article 6 reprend des conditions d'utilisation de l'API LLM d'Infomaniak,
+                    le service d'intelligence artificielle auquel l'application fait appel.
                 </p>
                 <p>
                     <strong>Se connecter, c'est s'authentifier au moyen de ce code.</strong> Revenir sur l'application
@@ -180,9 +186,39 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     <?php echo Utils::echapper($nom_site); ?> fournit <strong>un outil, et rien d'autre</strong> :
                     l'application <?php echo Utils::echapper($nom_application); ?> reconnaît une personne admise sur ce
-                    site et lui permet de tenir son profil à jour. Elle ne conserve aucune donnée des autres
-                    applications de la plateforme — ni rôle, ni droit, ni historique, ni contenu : ce que chaque
-                    application enregistre lui appartient et relève de ses propres conditions.
+                    site, lui permet de tenir son profil à jour et de tenir le budget de ses foyers. Elle ne conserve
+                    aucune donnée des autres applications de la plateforme — ni rôle, ni droit, ni historique, ni
+                    contenu : ce que chaque application enregistre lui appartient et relève de ses propres conditions.
+                </p>
+                <p>
+                    <strong>Les dépenses d'un foyer sont partagées</strong> : chaque membre voit toutes les dépenses du
+                    foyer, leurs articles et montants, et qui les a enregistrées. Seule la personne qui a enregistré une
+                    dépense peut la supprimer.
+                </p>
+                <?php // LA RELECTURE EST À LA CHARGE DE LA PERSONNE : l'art. 4 des conditions de l'API LLM
+                      // d'Infomaniak met la vérification des contenus générés à la charge de son client, et
+                      // l'art. 8 en décrit les risques. Ce paragraphe la reporte sur qui valide la saisie.?>
+                <p>
+                    <strong>La lecture d'un reçu n'est qu'une proposition.</strong> Le texte de la photo est lu
+                    automatiquement, dans la langue que la personne a choisie (français, anglais, allemand, espagnol
+                    ou italien), puis structuré par un service d'intelligence artificielle : l'un comme l'autre
+                    peuvent se tromper, omettre ou inventer une ligne — d'autant plus si la langue choisie n'est pas
+                    celle du reçu, ou si celui-ci est écrit dans une autre langue ou un autre alphabet. Il appartient à
+                    la personne de choisir la langue du reçu, puis de <strong>relire et corriger</strong> la
+                    proposition avant de l'enregistrer ; seules les lignes qu'elle a cochées le sont. Le nombre
+                    d'analyses est limité à <?php echo SiteConfig::ANALYSES_PAR_HEURE; ?> par personne et par heure ;
+                    lorsqu'une analyse échoue, le formulaire s'ouvre vide pour une saisie à la main.
+                </p>
+                <?php // LES RISQUES DE L'IA GÉNÉRATIVE, dans les termes de l'art. 8 des conditions de l'API LLM
+                      // d'Infomaniak : les reporter ici, c'est en avertir la personne avant qu'elle s'en serve.?>
+                <p>
+                    <strong>Les risques de l'intelligence artificielle générative.</strong> Le service qui structure le
+                    texte est l'<strong>API LLM d'Infomaniak Network SA</strong>, hébergeur de l'application (article 10
+                    de la <a href="/rgpd">politique de protection des données à caractère personnel</a>), qui y emploie
+                    un modèle de langage open source. Comme tout contenu produit par une intelligence artificielle
+                    générative, sa proposition peut être <strong>inexacte, biaisée ou erronée</strong>, et le modèle
+                    peut avoir été entraîné sur des données soumises à des droits de propriété intellectuelle. Ni
+                    <?php echo Utils::echapper($nom_site); ?>, ni Infomaniak ne répondent du contenu ainsi généré.
                 </p>
                 <p>
                     <strong>Une obligation de moyens.</strong> L'obligation de l'éditeur et concepteur se limite à
@@ -200,7 +236,27 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                     <li>ne pas tenter d'accéder à des informations qui ne lui sont pas destinées, de contourner les
                         contrôles d'accès, d'altérer le fonctionnement du service ou d'en extraire massivement le
                         contenu ;</li>
-                    <li>ne pas se servir de l'application pour adresser des communications non sollicitées.</li>
+                    <li>ne pas se servir de l'application pour adresser des communications non sollicitées ;</li>
+                    <li>n'enregistrer que des dépenses réelles du foyer, et ne soumettre à l'analyse que des reçus et
+                        factures qui s'y rapportent.</li>
+                </ul>
+                <?php // LES ENGAGEMENTS QU'INFOMANIAK DEMANDE À SON CLIENT (art. 4 des conditions de l'API LLM :
+                      // lois et CGU, vérification des contenus générés, usage sans surcharge, signalement des
+                      // problèmes techniques) : l'éditeur ne peut les tenir que si chaque personne qui lance une
+                      // analyse les tient elle aussi. Les reprendre ici les fait accepter avec la case de l'article 3.?>
+                <p>
+                    <strong>Pour la lecture des reçus</strong>, qui fait appel à l'API LLM d'Infomaniak (article 5), chaque
+                    personne utilisatrice s'engage en outre, comme Infomaniak l'exige de qui utilise son service, à :
+                </p>
+                <ul>
+                    <li>en faire usage dans le respect des lois en vigueur et des présentes conditions ;</li>
+                    <li><strong>vérifier la qualité, la pertinence et l'exactitude</strong> de chaque proposition avant
+                        de l'enregistrer ;</li>
+                    <li>adopter des pratiques responsables afin d'éviter toute <strong>surcharge anormale</strong> du
+                        service — notamment ne pas soumettre d'analyses en masse, répétées sans nécessité ou lancées par
+                        un procédé automatisé ;</li>
+                    <li><strong>signaler sans délai</strong> tout problème technique constaté, aux coordonnées de
+                        l'article 18.</li>
                 </ul>
                 <p>
                     Un <strong>pseudonyme</strong> ne doit ni usurper l'identité d'un tiers, ni porter atteinte aux
@@ -235,6 +291,12 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     L'ouverture d'un accès ne vaut pas acceptation des présentes conditions : celles-ci sont acceptées
                     par la personne elle-même, lorsqu'elle se connecte (article 3).
+                </p>
+                <p>
+                    <strong>Les foyers</strong> — leur nom et leurs membres — sont créés et composés depuis la présente
+                    application, sur l'écran « Foyers », par les seuls administrateurs de la plateforme. Seule une
+                    personne admise sur ce site peut être rattachée à un foyer ; chacun de ces gestes est inscrit au
+                    journal d'activité (article 14).
                 </p>
             </section>
 
@@ -331,8 +393,10 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <p>
                     Dans les limites permises par le droit applicable, <?php echo Utils::echapper($nom_site); ?> et son
                     éditeur et concepteur ne répondent pas des dommages résultant des informations saisies par les
-                    personnes utilisatrices, d'une indisponibilité du service — y compris l'impossibilité de se
-                    connecter —, ni d'une perte de données imputable à un tiers ou à un cas de force majeure.
+                    personnes utilisatrices, des <strong>propositions générées automatiquement</strong> lors de la
+                    lecture d'un reçu (article 5) — qu'il appartient à la personne de vérifier avant de les enregistrer
+                    —, d'une indisponibilité du service — y compris l'impossibilité de se connecter ou d'analyser un
+                    reçu —, ni d'une perte de données imputable à un tiers ou à un cas de force majeure.
                 </p>
                 <p>
                     Dans les limites permises par le droit applicable, <strong>toute responsabilité pour faute légère
@@ -396,7 +460,8 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                 <h3>14. Preuve</h3>
                 <p>
                     L'application tient un <strong>journal d'activité</strong> qui enregistre, pour chaque connexion,
-                    déconnexion, modification du profil et ouverture ou fermeture d'accès, la nature de l'opération, la
+                    déconnexion, modification du profil, ouverture ou fermeture d'accès, geste sur un foyer ou ses
+                    membres, enregistrement ou suppression d'une dépense et analyse d'un reçu, la nature de l'opération, la
                     <strong>date et l'heure</strong> à laquelle elle a eu lieu, le <strong>compte</strong> qui l'a
                     effectuée et, pour une modification, les valeurs avant et après (article 4.3 de la
                     <a href="/rgpd">politique de protection des données à caractère personnel</a>).
@@ -495,7 +560,7 @@ $canton_for = SiteConfig::CANTON_FOR_JURIDIQUE;
                       // la changer à chaque révision du texte. Bloc identique, à la ligne près, au bas de l'autre
                       // texte légal.?>
                 <div class="d-flex justify-content-end mt-3">
-                    <span class="fst-italic"><?php echo Utils::echapper($canton_for); ?>, le 8 octobre 2026</span>
+                    <span class="fst-italic"><?php echo Utils::echapper($canton_for); ?>, le 9 octobre 2026</span>
                 </div>
             </section>
 

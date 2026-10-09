@@ -1,0 +1,95 @@
+{
+  "date_document": "2013-08-14T10:12",
+  "reference": "",
+  "numero_tva": "CHE-105.970.604 MWST",
+  "vendeur": "MIGROS",
+  "lieu": "M PARADIES",
+  "total_imprime": "36.95",
+  "articles": [
+    {
+      "nom": "Léger Aprikosen Konfit",
+      "montant": "1.90",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Knoblauch",
+      "montant": "0.90",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Léger Aprikosen Konfit",
+      "montant": "1.90",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "montant": "0.55",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "montant": "0.55",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "montant": "0.55",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Jog Chocolat",
+      "montant": "0.55",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Nissin Soba Classic",
+      "montant": "1.80",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "MClass Landjäger",
+      "montant": "4.05",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Aenisstängel",
+      "montant": "1.70",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Bio Appenzeller",
+      "montant": "3.45",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Asia",
+      "montant": "3.15",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Radieschen",
+      "montant": "1.90",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "I am Moisture Condit.",
+      "montant": "2.40",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Beauty Zopfring",
+      "montant": "1.70",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Cosano Regular",
+      "montant": "4.95",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Cosano Regular",
+      "montant": "4.95",
+      "monnaie": "CHF"
+    }
+  ]
+}

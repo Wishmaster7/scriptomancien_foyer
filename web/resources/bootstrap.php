@@ -27,6 +27,7 @@ require_once __DIR__ . '/snippet.php';
 require_once __DIR__ . '/compte.php';
 require_once __DIR__ . '/journal.php';
 require_once __DIR__ . '/memoireFormulaire.php';
+require_once __DIR__ . '/saisie.php';
 require_once dirname(__DIR__) . '/authentication/model.php';
 
 // Dépendances d'exécution (PHPMailer), EMBARQUÉES sous web/ : seul web/ est déployé.

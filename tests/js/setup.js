@@ -92,6 +92,21 @@ import moduleAppMobile from '../../web/resources/js/app-mobile.js';
 export const appMobile = moduleAppMobile;
 globalThis.appMobile = appMobile;
 
+// Les onglets transitoires des écrans de gestion. Son écoute de « shown.bs.tab » est posée au chargement.
+import moduleOnglets from '../../web/resources/js/onglets.js';
+export const onglets = moduleOnglets;
+globalThis.onglets = onglets;
+
+// La zone des membres de « Gestion des foyers ». Les tests appellent initZone() sur le balisage qu'ils montent.
+import moduleMembresFoyer from '../../web/resources/js/membres-foyer.js';
+export const membresFoyer = moduleMembresFoyer;
+globalThis.membresFoyer = membresFoyer;
+
+// La page « Scanner un reçu ». Les tests appellent initBudgetScan() sur le balisage qu'ils montent.
+import moduleBudgetScan from '../../web/resources/js/budget-scan.js';
+export const budgetScan = moduleBudgetScan;
+globalThis.budgetScan = budgetScan;
+
 // --- Hygiène entre les tests ---------------------------------------------------------------
 afterEach(() => {
     // Vider le body retire aussi les gestionnaires posés sur les entrées : ils vivaient sur des

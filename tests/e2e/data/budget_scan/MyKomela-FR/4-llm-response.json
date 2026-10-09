@@ -1,0 +1,66 @@
+{
+  "date_document": "2021-02-26T12:20",
+  "reference": "JP_T210002",
+  "numero_tva": null,
+  "vendeur": "KOMELA DEMO FRINGUE1",
+  "lieu": "15, rue des Lilas, 97420 Le Port",
+  "description": "Vêtements",
+  "total_imprime": 599.6,
+  "total_ht": 552.63,
+  "taxes": [
+    {
+      "nom": "TVA",
+      "montant": 46.97
+    }
+  ],
+  "articles": [
+    {
+      "nom": "Bracelet ATARA",
+      "quantite": 1,
+      "prix_unitaire": null,
+      "montant": 225,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Pedal super stretch denim Bleu S",
+      "quantite": 2,
+      "prix_unitaire": 45,
+      "montant": null,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Robe STERIA Almond Flowers Almond 34",
+      "quantite": null,
+      "prix_unitaire": null,
+      "montant": 159.7,
+      "douteux": true,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Baker super stretch denim Bleu S",
+      "quantite": 1,
+      "prix_unitaire": 45,
+      "montant": null,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Britney blue stretch denim Bleu S",
+      "quantite": 3,
+      "prix_unitaire": 75,
+      "montant": null,
+      "douteux": false,
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Tweetsturt à capuche Bège",
+      "quantite": 1,
+      "prix_unitaire": 49.9,
+      "montant": null,
+      "douteux": false,
+      "monnaie": "EUR"
+    }
+  ]
+}

@@ -60,4 +60,23 @@ class MemoireFormulaireTest extends TestCase
 
         $this->assertNull(MemoireFormulaire::edition('profil', 4));
     }
+
+    /** LA SAISIE D'UN AJOUT n'a ni identifiant ni version : rendue une fois, puis effacée. */
+    public function testLaSaisieDUnAjoutEstRendueUneFois(): void
+    {
+        MemoireFormulaire::memoriserAjout('budget_scan', ['vendeur' => 'Migros']);
+
+        $this->assertSame(['vendeur' => 'Migros'], MemoireFormulaire::ajout('budget_scan'));
+        $this->assertNull(MemoireFormulaire::ajout('budget_scan'));
+    }
+
+    public function testOublierUnAjoutEtUneMemoireCorrompue(): void
+    {
+        MemoireFormulaire::memoriserAjout('budget_scan', ['vendeur' => 'Migros']);
+        MemoireFormulaire::oublierAjout('budget_scan');
+        $this->assertNull(MemoireFormulaire::ajout('budget_scan'));
+
+        $_SESSION['formulaires']['budget_scan'] = 'corrompue';
+        $this->assertNull(MemoireFormulaire::ajout('budget_scan'));
+    }
 }

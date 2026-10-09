@@ -107,8 +107,26 @@ var appMobile = (function () {
     }
 
     /**
-     * « Mobile App » : sur un téléphone, hors de l'application, révèle l'entrée du menu et arme son clic ; dans l'application,
-     * pose le cookie de session durable ; ailleurs, ne fait rien — l'entrée reste cachée (`hidden`, posé par le serveur).
+     * Montre l'entrée « Mobile App » sur un téléphone, la cache ailleurs.
+     *
+     * @returns {boolean} Vrai si elle est montrée.
+     */
+    function afficherEntreeMobile() {
+        var mobile = estAppareilMobile();
+        document.querySelectorAll('[data-role="app-mobile"]').forEach(function (entree) {
+            entree.hidden = !mobile;
+        });
+
+        return mobile;
+    }
+
+    /**
+     * « Mobile App » : dans l'application, pose le cookie de session durable ; ailleurs, arme le clic de l'entrée, et ne la montre
+     * que sur un téléphone.
+     *
+     * L'APPAREIL EST RÉÉVALUÉ À CHAQUE CHANGEMENT DE FENÊTRE OU DE POINTEUR, sans rechargement : le mode appareil des outils de
+     * développement (Ctrl+Maj+M) change l'user-agent, l'écran tactile et la taille de la page sans la recharger, et l'entrée doit
+     * suivre — un téléphone qu'on tourne déclenche le même recalcul, sans effet.
      *
      * @returns {string} « installee », « telephone » ou « ordinateur ».
      */
@@ -120,21 +138,20 @@ var appMobile = (function () {
 
             return 'installee';
         }
-        if (!estAppareilMobile()) {
-            return 'ordinateur';
-        }
 
-        document.querySelectorAll('[data-role="app-mobile"]').forEach(function (entree) {
-            entree.removeAttribute('hidden');
-        });
         document.querySelectorAll('[data-action="installer-app"]').forEach(function (entree) {
             entree.addEventListener('click', function (evenement) {
                 evenement.preventDefault();
                 installerApplication();
             });
         });
+        window.addEventListener('resize', afficherEntreeMobile);
+        var pointeurTactile = window.matchMedia('(hover: none) and (pointer: coarse)');
+        if (typeof pointeurTactile.addEventListener === 'function') {
+            pointeurTactile.addEventListener('change', afficherEntreeMobile);
+        }
 
-        return 'telephone';
+        return afficherEntreeMobile() ? 'telephone' : 'ordinateur';
     }
 
     /**
@@ -169,6 +186,7 @@ var appMobile = (function () {
         poserCookieApplication: poserCookieApplication,
         marquerApplicationInstallee: marquerApplicationInstallee,
         reprendreDernierePage: reprendreDernierePage,
+        afficherEntreeMobile: afficherEntreeMobile,
         initApplicationMobile: initApplicationMobile,
         installerApplication: installerApplication
     };

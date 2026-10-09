@@ -237,6 +237,43 @@ describe('initApplicationMobile', () => {
         expect(evenement.defaultPrevented).toBe(true);
     });
 
+    /**
+     * LE MODE APPAREIL DES OUTILS DE DÉVELOPPEMENT (Ctrl+Maj+M) change l'user-agent et la taille de la page SANS la recharger :
+     * l'entrée suit, dans les deux sens, au redimensionnement comme au changement de pointeur.
+     */
+    it('montre puis cache l\'entrée quand l\'appareil change sans rechargement', () => {
+        let surChangementDePointeur = null;
+        window.matchMedia = (requete) => ({
+            media: String(requete),
+            matches: false,
+            addEventListener: (type, ecouteur) => {
+                surChangementDePointeur = ecouteur;
+            }
+        });
+        document.body.innerHTML = '<a data-role="app-mobile" data-action="installer-app" hidden></a>';
+        const entree = document.querySelector('[data-role="app-mobile"]');
+
+        expect(appMobile.initApplicationMobile()).toBe('ordinateur');
+        expect(entree.hidden).toBe(true);
+
+        definirNavigateur({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)' });
+        window.dispatchEvent(new Event('resize'));
+        expect(entree.hidden).toBe(false);
+
+        definirNavigateur({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' });
+        surChangementDePointeur();
+        expect(entree.hidden).toBe(true);
+    });
+
+    it('afficherEntreeMobile rend vrai sur un téléphone, faux ailleurs', () => {
+        document.body.innerHTML = '<a data-role="app-mobile"></a>';
+        expect(appMobile.afficherEntreeMobile()).toBe(false);
+        expect(document.querySelector('[data-role="app-mobile"]').hidden).toBe(true);
+
+        definirNavigateur({ userAgent: 'Mozilla/5.0 (Linux; Android 14)' });
+        expect(appMobile.afficherEntreeMobile()).toBe(true);
+    });
+
     it('pose le cookie et recharge au premier lancement dans l\'application installée', () => {
         definirNavigateur({ standalone: true });
         const reload = vi.fn();

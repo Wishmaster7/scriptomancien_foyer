@@ -24,6 +24,11 @@ final class Journal
     public const TYPE_CONNEXION = 'connexion';
     public const TYPE_DECONNEXION = 'deconnexion';
     public const TYPE_MODIFICATION = 'modification';
+    public const TYPE_CREATION = 'creation';
+    public const TYPE_SUPPRESSION = 'suppression';
+
+    /** Un appel à l'API d'analyse des reçus : il est facturé, et le quota horaire se compte sur ces entrées. */
+    public const TYPE_ANALYSE = 'analyse';
 
     /** Séparateur des fragments d'INFORMATIONS — le même que celui des journaux de la plateforme. */
     public const SEPARATEUR = ' | ';

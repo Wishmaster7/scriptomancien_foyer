@@ -1,0 +1,30 @@
+{
+  "date_document": "2011-09-02T08:16",
+  "reference": "0002706",
+  "numero_tva": "",
+  "vendeur": "PHYTO 5",
+  "lieu": "Rue Grand St Jean 5, 1000 Lausanne",
+  "total_imprime": "85.00",
+  "articles": [
+    {
+      "nom": "BOUTON MANCHETTES",
+      "montant": "98.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Rabais",
+      "montant": "-49.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "lampe avec pied",
+      "montant": "15.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Desalley Chemin de Fer",
+      "montant": "21.00",
+      "monnaie": "CHF"
+    }
+  ]
+}

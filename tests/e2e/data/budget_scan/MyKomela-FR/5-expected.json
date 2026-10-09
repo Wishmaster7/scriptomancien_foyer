@@ -1,0 +1,40 @@
+{
+  "date_document": "2021-02-26T12:20",
+  "reference": "JP_T210002",
+  "numero_tva": "",
+  "vendeur": "DEMO FRINGUE1",
+  "lieu": "15, rue des Lilas, 97420 Le Port",
+  "total_imprime": "599.60",
+  "articles": [
+    {
+      "nom": "Bracelet ATARA",
+      "montant": "225.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Pedal super stretch denim Bleu S",
+      "montant": "45.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Robe STERIA Almond Flowers Almond 34",
+      "montant": "159.70",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Baker super stretch denim Bleu S",
+      "montant": "45.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pantalon Britney blue stretch denim Bleu S",
+      "montant": "75.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Tweetsturt à capuche Bège",
+      "montant": "49.90",
+      "monnaie": "EUR"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "date_document": "2018-05-20T22:55",
+  "reference": "INOD1001259",
+  "numero_tva": "0BAACCO6344G",
+  "vendeur": "Liquor Street (ODVJH Private Limited)",
+  "lieu": "11/2 Sector- 37, Faridabad-121003",
+  "description": "Restaurant",
+  "total_imprime": 1139,
+  "total_ht": 1035,
+  "taxes": [
+    {
+      "nom": "cCeST@2.5",
+      "montant": 25.89
+    },
+    {
+      "nom": "SGST@2.5",
+      "montant": 25.89
+    },
+    {
+      "nom": "S.Tax",
+      "montant": 51.75
+    }
+  ],
+  "articles": [
+    {
+      "nom": "Tandoori chicken",
+      "quantite": 1,
+      "prix_unitaire": 295,
+      "montant": 309.75,
+      "douteux": false,
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Lasooni Dal Tadka",
+      "quantite": 1,
+      "prix_unitaire": 275,
+      "montant": 288.75,
+      "douteux": false,
+      "monnaie": "INR"
+    },
+    {
+      "nom": "HYDERABADI MURG BIRYANI",
+      "quantite": 1,
+      "prix_unitaire": 376,
+      "montant": 393.75,
+      "douteux": true,
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Tandoori Roti all food",
+      "quantite": 2,
+      "prix_unitaire": 30,
+      "montant": 63,
+      "douteux": false,
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Tandoori Roti",
+      "quantite": 1,
+      "prix_unitaire": 30,
+      "montant": 31.5,
+      "douteux": false,
+      "monnaie": "INR"
+    }
+  ]
+}

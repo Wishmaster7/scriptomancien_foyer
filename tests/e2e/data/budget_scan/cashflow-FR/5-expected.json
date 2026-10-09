@@ -1,0 +1,25 @@
+{
+  "date_document": "2009-05-28T16:30",
+  "reference": "00007E8",
+  "numero_tva": "",
+  "vendeur": "CASHFLOW SA",
+  "lieu": "Rte de Denges 36, 1027 Lonay",
+  "total_imprime": "2058.90",
+  "articles": [
+    {
+      "nom": "COSTUME JLJ",
+      "montant": "1950.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "chaussure howell",
+      "montant": "100.00",
+      "monnaie": "CHF"
+    },
+    {
+      "nom": "Chausettes JSC pleins de couleurs",
+      "montant": "8.90",
+      "monnaie": "CHF"
+    }
+  ]
+}

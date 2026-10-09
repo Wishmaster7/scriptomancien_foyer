@@ -89,6 +89,35 @@ class MemoireFormulaire
         ];
     }
 
+    /**
+     * Dépose la saisie d'un AJOUT refusé — sans identifiant ni version : la ligne n'existe pas encore.
+     *
+     * @param array<string, mixed> $champs Indexé par NOM DE CHAMP de formulaire
+     */
+    public static function memoriserAjout(string $entite, array $champs): void
+    {
+        $_SESSION['formulaires'][$entite] = $champs;
+    }
+
+    /** Oublie la saisie d'ajout déposée pour cette entité. */
+    public static function oublierAjout(string $entite): void
+    {
+        unset($_SESSION['formulaires'][$entite]);
+    }
+
+    /**
+     * La saisie d'ajout à rendre au formulaire, ou null — lue puis effacée, comme {@see self::edition()}.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function ajout(string $entite): ?array
+    {
+        $memoire = $_SESSION['formulaires'][$entite] ?? null;
+        unset($_SESSION['formulaires'][$entite]);
+
+        return is_array($memoire) ? $memoire : null;
+    }
+
     /** La clé de session d'une entité : celle de l'édition, jamais celle de l'ajout. */
     private static function cle(string $entite): string
     {

@@ -1,0 +1,18 @@
+ONFecha:   16/07/2025 16:11:32   +:
+e
+⟦1⟧   121   r
+Li   mensales: ⟦2⟧   :
+<a   atendió: — ANTONIO - TABLET
+Articulo   Precio Und. Importe
+AQUARIUS NARANJA — 2,50   xi   ⟦2,50⟧
+AQUARIUS LIMON   2,50 f   xi   2,50 f
+ESPETO SARDINA   3,00 f   ⟦x3⟧ ⟦9,00⟧
+Panx   ⟦1,00⟧   ⟦x2⟧   2,00 f
+FRITURA PARA 2   18,00   x1 18,00
+PINCHO LANGOST.   3,80 r   xl   3,80
+Aliolix   1,00   xl   1,00 f
+PROPINA   3,50 f   x2 17,00
+Total   ⟦45.80,⟧
+Base Imponible   41,64
+IVA
+Gracias por su visita

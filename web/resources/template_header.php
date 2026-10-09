@@ -79,9 +79,31 @@ $versionCssFontAwesome = (string) (@filemtime($racine . '/resources/css/fontawes
               // (initApplicationMobile) lève « hidden » — le serveur ne distingue pas un téléphone,
               // et le test se fait où se trouve le navigateur. Une SEULE icône, jamais répétée dans
               // le menu déplié : elle ne mène à aucune page, elle déclenche un geste.?>
-        <a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" aria-label="Mobile App" hidden>
-            <i class="fas fa-mobile-screen" aria-hidden="true"></i>
+        <?php // Libellé à droite de l'icône en affichage normal, masqué sous « lg » comme celui des liens voisins.?>
+        <a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" hidden>
+            <i class="fas fa-mobile-screen" aria-hidden="true"></i> <span class="d-none d-lg-inline">Mobile App</span><span class="visually-hidden d-lg-none">Mobile App</span>
         </a>
+        <?php // LES ÉCRANS DE CE SITE SONT DES LIENS DIRECTS, hors du menu repliable : sous « lg », ils
+              // restent dans la barre, réduits à leur pictogramme (même rangée que dans convention).
+              // Le libellé est rendu deux fois — visible au-dessus du seuil, « visually-hidden »
+              // dessous — pour que le lien garde son nom accessible. « Foyers » n'est proposé
+              // qu'aux administrateurs : le point d'entrée ne le sert qu'à eux.
+        $onglets = [
+            ['budget', 'fa-coins', 'Budget'],
+            ['budget_scan', 'fa-barcode-read', 'Scanner un reçu'],
+        ];
+        if (Compte::estAdmin()) {
+            $onglets[] = ['foyers', 'fa-house-user', 'Foyers'];
+        }
+        $action_courante = (string) ($_GET['action'] ?? '');
+        ?>
+        <div class="d-flex align-items-center liens-entete">
+            <?php foreach ($onglets as [$action_onglet, $icone_onglet, $libelle_onglet]) { ?>
+            <a href="/?action=<?php echo $action_onglet; ?>" class="lien-entete text-dark<?php echo $action_onglet === $action_courante ? ' active" aria-current="page' : ''; ?>" data-role="onglet-<?php echo $action_onglet; ?>">
+                <i class="fas <?php echo $icone_onglet; ?>" aria-hidden="true"></i> <span class="d-none d-lg-inline"><?php echo Utils::echapper($libelle_onglet); ?></span><span class="visually-hidden d-lg-none"><?php echo Utils::echapper($libelle_onglet); ?></span>
+            </a>
+            <?php } ?>
+        </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>

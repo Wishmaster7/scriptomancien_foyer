@@ -88,6 +88,85 @@ class SiteConfig
     /** Année de lancement de l'application, écrite au copyright du pied de page. */
     public const ANNEE_DEBUT = 2026;
 
+    /** Monnaie d'un article quand le reçu ne permet pas de la déduire (code ISO 4217). */
+    public const MONNAIE_DEFAUT = 'CHF';
+
+    /**
+     * Point d'appel « chat completions » de l'API LLM d'Infomaniak (compatible OpenAI), version 2.
+     * `{product_id}` est remplacé par l'identifiant du produit AI Tools ({@see self::infomaniakUrl()}).
+     */
+    public const INFOMANIAK_URL_API = 'https://api.infomaniak.com/2/ai/{product_id}/openai/v1/chat/completions';
+
+    /**
+     * Modèle d'analyse des reçus, surchargeable par INFOMANIAK_AI_MODEL : Infomaniak remplace ses
+     * modèles au fil du temps (préavis de 30 jours, art. 5 de ses conditions de l'API LLM).
+     */
+    public const INFOMANIAK_MODELE = 'google/gemma-4-31B-it';
+
+    /** Nombre maximal d'analyses de reçu par personne et par heure glissante : chaque appel est facturé. */
+    public const ANALYSES_PAR_HEURE = 30;
+
+    /**
+     * Le service des COURS DE CHANGE : Frankfurter, qui publie les cours de référence de la Banque
+     * centrale européenne, gratuitement et sans clé ({@see CoursDeChange}).
+     */
+    public const COURS_CHANGE_URL_API = 'https://api.frankfurter.dev/v1';
+
+    /**
+     * Les monnaies qu'un foyer peut prendre pour référence : celles dont la BCE publie un cours, et
+     * que {@see CoursDeChange} sait donc convertir.
+     */
+    public const MONNAIES_REFERENCE = [
+        'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'ISK',
+        'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR',
+    ];
+
+    /**
+     * L'adresse du service des cours, surchargeable par COURS_CHANGE_URL : LES TESTS LA POSENT
+     * TOUJOURS sur un serveur local (tests/bootstrap.php, tests/e2e), comme celle du LLM.
+     */
+    public static function coursChangeUrl(): string
+    {
+        $url = getenv('COURS_CHANGE_URL');
+
+        return is_string($url) && $url !== '' ? $url : self::COURS_CHANGE_URL_API;
+    }
+
+    /** Jeton d'accès à l'API Infomaniak (portée « ai-tools »), lu dans INFOMANIAK_AI_TOKEN. */
+    public static function infomaniakJeton(): string
+    {
+        return (string) getenv('INFOMANIAK_AI_TOKEN');
+    }
+
+    /** Identifiant du produit AI Tools, lu dans INFOMANIAK_AI_PRODUCT_ID. */
+    public static function infomaniakProduit(): string
+    {
+        return (string) getenv('INFOMANIAK_AI_PRODUCT_ID');
+    }
+
+    public static function infomaniakModele(): string
+    {
+        $modele = getenv('INFOMANIAK_AI_MODEL');
+
+        return is_string($modele) && $modele !== '' ? $modele : self::INFOMANIAK_MODELE;
+    }
+
+    /**
+     * L'adresse de l'API, surchargeable par INFOMANIAK_AI_URL (même gabarit, `{product_id}` compris) :
+     * LES TESTS LA POSENT TOUJOURS sur un serveur local (tests/bootstrap.php, tests/e2e), de sorte
+     * qu'aucun test ne puisse jamais atteindre la vraie API — facturée.
+     */
+    public static function infomaniakUrl(): string
+    {
+        $gabarit = getenv('INFOMANIAK_AI_URL');
+
+        return str_replace(
+            '{product_id}',
+            rawurlencode(self::infomaniakProduit()),
+            is_string($gabarit) && $gabarit !== '' ? $gabarit : self::INFOMANIAK_URL_API
+        );
+    }
+
     /** Adresse publique de l'application, telle qu'elle doit s'écrire dans un email. */
     public static function urlApplication(): string
     {

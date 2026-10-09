@@ -16,7 +16,7 @@ class TemplateHeaderTest extends TestBase
     {
         $this->connecter(self::$membreId);
 
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertStringContainsString('id="navCompte"', $html);
         $this->assertStringContainsString('Mon compte', $html);
@@ -32,7 +32,7 @@ class TemplateHeaderTest extends TestBase
     {
         $this->connecter(self::$adminId);
 
-        $html = $this->requete();
+        $html = $this->page();
         $menu = (string) strstr((string) strstr($html, 'aria-labelledby="navCompte"'), '</ul>', true);
 
         $this->assertStringContainsString('href="/?action=profil"', $menu);
@@ -44,20 +44,36 @@ class TemplateHeaderTest extends TestBase
     }
 
     /**
-     * LA BARRE NE PORTE QUE « MON COMPTE », pour tout le monde : ce site n'a aucun écran
-     * d'administration, l'accès s'y ouvre depuis l'application « personnes », et un administrateur
-     * de la plateforme n'y voit donc pas un menu de plus.
+     * LA BARRE PORTE LES ÉCRANS DE CE SITE, puis « Mon compte » : Budget et Scanner pour tout le monde,
+     * Foyers pour les seuls administrateurs. L'accès au site, lui, s'ouvre toujours depuis
+     * l'application « personnes » : aucun menu d'administration des accès n'est ajouté.
      */
-    public function testLaBarreNePorteQueLeMenuMonCompte(): void
+    public function testLaBarrePorteLesEcransPuisLeMenuMonCompte(): void
     {
-        foreach ([self::$adminId, self::$membreId] as $personneId) {
+        foreach ([self::$adminId => true, self::$membreId => false] as $personneId => $admin) {
             $this->connecter($personneId);
-            $html = $this->requete();
+            $html = $this->page();
 
-            $this->assertStringContainsString('id="navCompte"', $html);
+            // HORS DU MENU REPLIABLE : sous « lg », l'icône reste dans la barre, et le libellé, masqué,
+            // reste le nom accessible du lien.
+            $this->assertStringContainsString('<i class="fas fa-coins" aria-hidden="true"></i> <span class="d-none d-lg-inline">Budget</span><span class="visually-hidden d-lg-none">Budget</span>', $html);
+            $this->assertStringContainsString('<i class="fas fa-barcode-read" aria-hidden="true"></i> <span class="d-none d-lg-inline">Scanner un reçu</span>', $html);
+            $this->assertLessThan((int) strpos($html, 'id="navbarNav"'), (int) strpos($html, 'data-role="onglet-budget"'));
+            $this->assertSame($admin, str_contains($html, 'href="/?action=foyers"'));
+            $this->assertLessThan((int) strpos($html, 'id="navCompte"'), (int) strpos($html, 'data-role="onglet-budget"'));
             $this->assertStringNotContainsString('id="navAdmin"', $html);
             $this->assertSame(1, substr_count($html, 'class="nav-item dropdown"'));
         }
+    }
+
+    public function testLOngletDeLaPageCouranteEstActif(): void
+    {
+        $this->connecter(self::$membreId);
+
+        $html = $this->requete(['action' => 'budget_scan']);
+
+        $this->assertStringContainsString('href="/?action=budget_scan" class="lien-entete text-dark active" aria-current="page"', $html);
+        $this->assertStringContainsString('href="/?action=budget" class="lien-entete text-dark" data-role', $html);
     }
 
     public function testLaDeconnexionResteUneSoumissionAvecSonJeton(): void
@@ -67,7 +83,7 @@ class TemplateHeaderTest extends TestBase
         // nature — et le jeton CSRF voyage avec.
         $this->connecter(self::$membreId);
 
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertStringContainsString('<button type="submit" class="dropdown-item">', $html);
         $this->assertStringContainsString('name="action" value="deconnexion"', $html);
@@ -76,7 +92,7 @@ class TemplateHeaderTest extends TestBase
 
     public function testLaBarreNAffichePasLeMenuSansSession(): void
     {
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertStringNotContainsString('id="navCompte"', $html);
         $this->assertStringNotContainsString('deconnexion', $html);
@@ -94,7 +110,7 @@ class TemplateHeaderTest extends TestBase
                 $this->connecter(self::$membreId);
             }
 
-            $html = $this->requete();
+            $html = $this->page();
 
             $this->assertStringContainsString('id="page-header"', $html);
             $this->assertStringContainsString('<a href="/" class="stretched-link" aria-label="Accueil"></a>', $html);
@@ -104,7 +120,7 @@ class TemplateHeaderTest extends TestBase
     /** La feuille du composant est chargée avant celle de l'application, qui garde le dernier mot. */
     public function testLaFeuilleDuComposantEstChargeeAvantCelleDeLApplication(): void
     {
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertStringContainsString('/resources/personnes/css/connexion.css?v=', $html);
         $this->assertLessThan(
@@ -120,7 +136,7 @@ class TemplateHeaderTest extends TestBase
      */
     public function testLeThemeSombreSeChargeEntreBootstrapEtLaFeuilleDeLApplication(): void
     {
-        $html = $this->requete();
+        $html = $this->page();
 
         $sombre = strpos($html, '<link rel="stylesheet" href="/resources/css/bootstrap-sombre.css">');
         $this->assertNotFalse($sombre);
@@ -137,7 +153,7 @@ class TemplateHeaderTest extends TestBase
      */
     public function testLePiedDePageEstServiSurToutesLesPages(): void
     {
-        foreach ([[[], '/'], [['action' => 'profil'], '/'], [[], '/cgu'], [[], '/rgpd']] as [$get, $chemin]) {
+        foreach ([[['action' => 'budget_scan'], '/'], [['action' => 'profil'], '/'], [[], '/cgu'], [[], '/rgpd']] as [$get, $chemin]) {
             $this->connecter(self::$membreId);
             $html = $this->requete($get, [], 'GET', $chemin);
 
@@ -161,7 +177,7 @@ class TemplateHeaderTest extends TestBase
     public function testLeScriptDOuvertureAuSurvolEstCeluiDuComposant(): void
     {
         $this->connecter(self::$membreId);
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertMatchesRegularExpression('~<script src="/resources/personnes/js/personnes\.js\?v=\d+"></script>~', $html);
         $this->assertSame(1, substr_count($html, 'js/personnes.js'));
@@ -176,7 +192,7 @@ class TemplateHeaderTest extends TestBase
                 $this->connecter(self::$membreId);
             }
 
-            $html = $this->requete();
+            $html = $this->page();
 
             $this->assertStringContainsString('<link rel="manifest" href="/manifest.webmanifest">', $html);
             $this->assertStringContainsString('<link rel="apple-touch-icon" href="/resources/images/apple-touch-icon.png">', $html);
@@ -193,10 +209,11 @@ class TemplateHeaderTest extends TestBase
     {
         $this->connecter(self::$membreId);
 
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertMatchesRegularExpression(
-            '~<a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" aria-label="Mobile App" hidden>~',
+            '~<a href="#" class="lien-entete text-dark" data-role="app-mobile" data-action="installer-app" hidden>\s*'
+            . '<i class="fas fa-mobile-screen" aria-hidden="true"></i> <span class="d-none d-lg-inline">Mobile App</span><span class="visually-hidden d-lg-none">Mobile App</span>~',
             $html
         );
         $this->assertSame(1, substr_count($html, 'data-role="app-mobile"'), 'Une seule icône, jamais répétée dans le menu.');
@@ -206,7 +223,7 @@ class TemplateHeaderTest extends TestBase
     /** Sans session, ni l'icône ni la modale : rien n'a de sens à installer depuis l'écran de connexion. */
     public function testLIconeMobileAppEstAbsenteSansSession(): void
     {
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertStringNotContainsString('data-role="app-mobile"', $html);
         $this->assertStringNotContainsString('id="modal-app-mobile"', $html);
@@ -217,7 +234,7 @@ class TemplateHeaderTest extends TestBase
     {
         $this->connecter(self::$membreId);
 
-        $html = $this->requete();
+        $html = $this->page();
 
         $this->assertMatchesRegularExpression('#<script src="/resources/js/app-mobile\.js\?v=\d+"></script>#', $html);
     }
@@ -230,16 +247,25 @@ class TemplateHeaderTest extends TestBase
     public function testLeCopyrightSEtendSurUnePlageDesLAnneeSuivante(): void
     {
         $this->connecter(self::$membreId);
-        $this->assertStringContainsString((string) SiteConfig::ANNEE_DEBUT, $this->requete());
+        $this->assertStringContainsString((string) SiteConfig::ANNEE_DEBUT, $this->page());
 
         try {
             Utils::figerMaintenant(mktime(12, 0, 0, 6, 15, SiteConfig::ANNEE_DEBUT + 2));
             $this->assertStringContainsString(
                 SiteConfig::ANNEE_DEBUT . ' - ' . (SiteConfig::ANNEE_DEBUT + 2),
-                $this->requete()
+                $this->page()
             );
         } finally {
             Utils::figerMaintenant(null);
         }
+    }
+
+    /**
+     * UNE PAGE SERVIE, session ouverte ou non : celle du scan d'un reçu, page par défaut de l'application — ou, sans
+     * session, l'écran de connexion. Pas « / », qui n'est plus qu'une redirection une fois connecté.
+     */
+    private function page(): string
+    {
+        return $this->requete(['action' => 'budget_scan']);
     }
 }

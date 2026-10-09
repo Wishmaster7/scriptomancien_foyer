@@ -1,0 +1,24 @@
+KOMELA
+DEMO FRINGUE1
+Siège principal
+15, rue des Lilas
+97420 Le Port
+Ticket n°JP_T210002 du 26/02/2021-12:20
+CAISSE : JP-Jean PERIN
+CLIENT COMPTANT
+Article   Qté   Prix
+Bracelet ATARA   1 225,00 2
+Pantalon Pedal super stretch denim
+Bleu S   2 45,00 2
+Robe STERIA Almond Flowers   ;   ;
+Almond 34   ⟦1.159,70⟧ 2
+Pantalon Baker super stretch   ;
+denim Bleu S   1   45,00 2
+Pantalon Britney blue stretch denim   = n
+Bleu S   3   75,00 2
+Tweetsturt à capuche Bège   1   49,90 2
+Nombre d'articles   9
+Total TTC en Euro   599,60
+Réglement: Espèce   599,60
+HT   Taux   TVA   ITC
+2   552,63   85   46,97   599 60

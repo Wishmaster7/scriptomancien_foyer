@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Foyer\App\BudgetScanController;
 use Foyer\App\SiteConfig;
 use Foyer\App\Utils;
 use Personnes\Auth\Authentification;
@@ -68,7 +69,7 @@ class IndexTest extends TestBase
 
             $this->assertMatchesRegularExpression($motif, $html);
             $this->assertStringContainsString('Éditeur et concepteur de la plateforme :', $html);
-            $this->assertStringContainsString(SiteConfig::CANTON_FOR_JURIDIQUE . ', le 8 octobre 2026', $html);
+            $this->assertStringContainsString(SiteConfig::CANTON_FOR_JURIDIQUE . ', le 9 octobre 2026', $html);
         }
     }
 
@@ -95,9 +96,9 @@ class IndexTest extends TestBase
     }
 
     /**
-     * LES DEUX TEXTES DISENT QU'AUCUNE DONNÉE FAMILIALE N'EST ENCORE ENREGISTRÉE, et c'est vrai tant que le
-     * schéma ne porte que PERSONNE et LOGS. Ce test lie les deux : la PREMIÈRE table métier le fait échouer,
-     * et c'est le but — la politique doit être corrigée AVANT que la table serve (art. 18).
+     * LES DEUX TEXTES DÉCRIVENT LES TABLES DU SCHÉMA, et ce test les lie : une table apparue le fait
+     * échouer, et c'est le but — la politique doit être corrigée AVANT que la table serve (art. 18).
+     * Ils annoncent aussi le sous-traitant qui analyse le texte des reçus.
      */
     public function testLesTextesLegauxSuiventLePerimetreReelDuSchema(): void
     {
@@ -107,22 +108,36 @@ class IndexTest extends TestBase
             self::$db->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetch_all(MYSQLI_NUM),
             0
         );
+        $tables = array_map('strtoupper', $tables);
         sort($tables);
 
         $this->assertSame(
-            ['LOGS', 'PERSONNE'],
-            array_map('strtoupper', $tables),
-            "Une table métier est apparue : reprenez /cgu et /rgpd avant qu'elle serve (art. 18 de la politique)."
+            ['BUDGET_SCAN', 'BUDGET_SCAN_ARTICLE', 'FOYER', 'FOYER_PERSONNE', 'LOGS', 'PERSONNE'],
+            $tables,
+            "Une table est apparue : reprenez /cgu et /rgpd avant qu'elle serve (art. 18 de la politique)."
         );
 
-        $this->assertStringContainsString(
-            'Aucune donnée familiale n\'est enregistrée à ce jour',
-            $this->requete([], [], 'GET', '/rgpd')
-        );
-        $this->assertStringContainsString(
-            'ne sont pas encore ouverts',
-            $this->requete([], [], 'GET', '/cgu')
-        );
+        $rgpd = $this->requete([], [], 'GET', '/rgpd');
+        $this->assertStringContainsString('4.4 Les foyers et leurs dépenses', $rgpd);
+        $this->assertStringContainsString('<strong>La photo d\'un reçu ne quitte pas votre appareil</strong>', $rgpd);
+        $this->assertStringContainsString("d'Infomaniak Network SA</strong>", $rgpd);
+        $this->assertStringContainsString('<strong>ne les utilise pas pour entraîner ses modèles</strong>', $rgpd);
+        $this->assertStringNotContainsString('Aucune donnée familiale', $rgpd);
+
+        $cgu = $this->requete([], [], 'GET', '/cgu');
+        $this->assertStringContainsString('<strong>La lecture d\'un reçu n\'est qu\'une proposition.</strong>', $cgu);
+        $this->assertMatchesRegularExpression('#limité à\s+' . SiteConfig::ANALYSES_PAR_HEURE . ' par personne et par heure#', $cgu);
+        $this->assertStringNotContainsString('ne sont pas encore ouverts', $cgu);
+    }
+
+    public function testLesFoyersNeSontServisQuAUnAdministrateur(): void
+    {
+        $this->connecter(self::$membreId);
+        $this->requete(['action' => 'foyers']);
+        $this->assertSame(BudgetScanController::URL, $this->redirection());
+
+        $this->connecter(self::$adminId);
+        $this->assertStringContainsString('id="page-foyers"', $this->requete(['action' => 'foyers']));
     }
 
     public function testUneSoumissionSansJetonCsrfEstInterceptee(): void
@@ -161,7 +176,7 @@ class IndexTest extends TestBase
             'csrf_token' => $this->jetonCsrf(),
         ], 'POST');
 
-        // UNE CONNEXION RÉUSSIE MÈNE À L'ACCUEIL, la racine nue, et non au profil.
+        // UNE CONNEXION RÉUSSIE MÈNE À LA RACINE NUE, et non au profil — qui redirige vers le scan d'un reçu.
         $this->assertSame('/', $this->redirection());
         $this->assertSame('OK', $_SESSION[Authentification::CLE_ETAPE]);
     }
@@ -213,24 +228,38 @@ class IndexTest extends TestBase
         $this->assertArrayNotHasKey(Authentification::CLE_PERSONNE, $_SESSION);
     }
 
-    public function testUneSessionOuverteMeneALAccueilParDefaut(): void
+    public function testUneSessionOuverteMeneAuScanDUnRecuParDefaut(): void
     {
         $this->connecter(self::$membreId);
 
         $html = $this->requete();
 
-        $this->assertStringContainsString('id="page-accueil"', $html);
+        // UNE REDIRECTION, et rien d'autre : l'adresse affichée est celle du scan.
+        $this->assertSame(BudgetScanController::URL, $this->redirection());
+        $this->assertSame('', $html);
     }
 
-    public function testUneActionInconnueRetombeSurLAccueil(): void
+    public function testUneActionInconnueRetombeSurLeScanDUnRecu(): void
     {
         // ET NON SUR LE PROFIL, qui était le défaut auparavant : une action mal orthographiée
         // présentait alors un formulaire de modification que personne n'avait demandé.
         $this->connecter(self::$membreId);
 
-        $html = $this->requete(['action' => 'nimporte_quoi']);
+        $this->requete(['action' => 'nimporte_quoi']);
 
-        $this->assertStringNotContainsString('Mon identité', $html);
+        $this->assertSame(BudgetScanController::URL, $this->redirection());
+    }
+
+    public function testUnPostEgareNEnregistreAucunRecu(): void
+    {
+        $this->connecter(self::$membreId);
+
+        $this->requete(['action' => 'nimporte_quoi'], ['date_document' => '2026-10-13T10:00', 'csrf_token' => $this->jetonCsrf()], 'POST');
+
+        $this->assertSame(BudgetScanController::URL, $this->redirection());
+        // Le contrôleur du scan n'a pas été atteint : ni reçu enregistré, ni refus de saisie.
+        $this->assertSame('', \Foyer\App\Flash::prendre('succes'));
+        $this->assertSame('', \Foyer\App\Flash::prendre('erreur'));
     }
 
     public function testLeProfilResteAtteignableParSonAction(): void
@@ -273,7 +302,7 @@ class IndexTest extends TestBase
     {
         $this->connecter(self::$adminId);
 
-        $html = $this->requete();
+        $html = $this->requete(['action' => 'budget_scan']);
 
         $this->assertStringContainsString('Mon profil', $html);
         $this->assertStringNotContainsString('action=admin_annuaire', $html);

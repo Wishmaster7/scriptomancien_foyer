@@ -1,0 +1,50 @@
+{
+  "date_document": "2025-07-16T16:11",
+  "reference": "",
+  "numero_tva": "",
+  "vendeur": "",
+  "lieu": "",
+  "total_imprime": "45.80",
+  "articles": [
+    {
+      "nom": "AQUARIUS NARANJA",
+      "montant": "2.50",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "AQUARIUS LIMON",
+      "montant": "2.50",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "ESPETO SARDINA",
+      "montant": "9.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Pan",
+      "montant": "2.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "FRITURA PARA 2",
+      "montant": "18.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "PINCHO LANGOST.",
+      "montant": "3.80",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "Alioli",
+      "montant": "1.00",
+      "monnaie": "EUR"
+    },
+    {
+      "nom": "PROPINA",
+      "montant": "7.00",
+      "monnaie": "EUR"
+    }
+  ]
+}

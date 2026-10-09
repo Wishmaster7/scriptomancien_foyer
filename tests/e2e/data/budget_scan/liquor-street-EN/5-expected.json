@@ -1,0 +1,45 @@
+{
+  "date_document": "2018-05-20T22:55",
+  "reference": "INOD1001259",
+  "numero_tva": "",
+  "vendeur": "Liquor Street",
+  "lieu": "11/2 Sector-37, Faridabad-121003",
+  "total_imprime": "1139.00",
+  "articles": [
+    {
+      "nom": "Tandoori chicken",
+      "montant": "309.75",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Lasooni Dal Tadka",
+      "montant": "288.75",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "HYDERABADI MURG BIRYANI",
+      "montant": "393.75",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Tandoori Roti all food",
+      "montant": "63.00",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Tandoori Roti",
+      "montant": "31.50",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "S.Tax",
+      "montant": "51.75",
+      "monnaie": "INR"
+    },
+    {
+      "nom": "Arrondi",
+      "montant": "0.50",
+      "monnaie": "INR"
+    }
+  ]
+}
